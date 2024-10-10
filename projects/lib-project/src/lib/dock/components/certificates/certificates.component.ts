@@ -162,7 +162,6 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
         this.libProjectService.isSendForReviewValidation.subscribe(
           (reviewValidation: boolean) => {
             if(reviewValidation) {
-              this.certificateForm.markAllAsTouched();
               this.libProjectService.triggerSendForReview();
             }
           }
@@ -444,9 +443,6 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
   }
 
   attachLogos(attachmentType:number) {
-    if(this.libProjectService.projectData.certificate.base_template_id == '') {
-      return
-    }
     const attachLogoData = this.certificateDetails.find(
       (field: any) => field.name === 'attachlogo'
     );
@@ -479,9 +475,6 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
   }
 
   attachSignature(signatureType:number) {
-    if(this.libProjectService.projectData.certificate.base_template_id == '') {
-      return
-    }
     const attachSignData = this.certificateDetails.find(
       (field: any) => field.name === 'attachsign'
     );
