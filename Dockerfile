@@ -12,18 +12,16 @@ RUN npm install --force
 
 COPY . .
 
-RUN ng build self-creation-portal  --configuration production
+RUN ng build self-creation-portal 
 
 FROM node:20 AS final
 
-WORKDIR /usr/projects/self-creation-portal/src/app
+WORKDIR /usr/src/app
 
-COPY --from=build /app/dist/self-creation-portal /app/
-
-COPY projects/self-creation-portal/src/assets/env/env.js ./assets/env/env.js
+COPY --from=build /app/dist/self-creation-portal ./dist
 
 RUN npm install -g serve
 
 EXPOSE 4200
 
-CMD ["ng", "serve", "--host", "0.0.0.0"]
+CMD ["serve", "-s", "dist/self-creation-portal", "-p", "4200"]

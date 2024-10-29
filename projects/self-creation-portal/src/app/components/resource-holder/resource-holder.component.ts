@@ -483,6 +483,9 @@ applyButtons(button: any, cardItem: any, clearExisting: boolean = false): void {
     if(!cardItem.review_status) {
       infoFields = filterAndMapFields(cardItem.status);
     } 
+    if(cardItem.stage === "COMPLETION") {
+      infoFields = filterAndMapFields(cardItem.status);
+    }
 
     const dialogRef = this.dialog.open(DialogPopupComponent, {
       width: '39.375rem',
