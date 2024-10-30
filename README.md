@@ -1,7 +1,6 @@
 # SelfCreationPortal
 
 The SelfCreationPortal is a Angular-based project generated with Angular Framework and Angular Material
-This project using multiple angular build libraries like  lib-observation, lib-observation-with-rubrics, lib-program, lib-project, lib-survey and lib-shared-modules.
 The SelfCreationPortal is a versatile building block that enables users to independently create, update, and review resources (i.e., projects, observations, observation with rubric and survey) and programs.
 
 ## Contents
@@ -42,7 +41,7 @@ The SelfCreationPortal is a versatile building block that enables users to indep
 2. Go to the project folder using the below command.
    
    ```bash
-       cd self-creation-portal 
+      cd self-creation-portal 
    ```
 
 3. Create the `environment.prod.ts` in the environments folder.
