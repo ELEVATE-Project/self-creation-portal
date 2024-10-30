@@ -41,7 +41,7 @@ The SelfCreationPortal is a versatile building block that enables users to indep
 2. Go to the project folder using the below command.
    
    ```bash
-      cd self-creation-portal 
+       cd self-creation-portal 
    ```
 
 3. Create the `environment.prod.ts` in the environments folder.
