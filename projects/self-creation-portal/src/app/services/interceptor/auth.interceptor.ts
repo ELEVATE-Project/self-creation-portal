@@ -27,22 +27,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   if(onlineStatus){
     if (req.headers.get('X-Requested-With') === 'XMLHttpRequest') {
       if(authToken) {
-        if(req.url.includes('entity-management')){
-          authReq = req.clone({
-            url: `${environment.baseURL}${req.url}`,
-            setHeaders: {
-              'x-auth-token': `${authToken}`
-            }
-          });
-        }
-        else {
-          authReq = req.clone({
-            url: `${environment.baseURL}${req.url}`,
-            setHeaders: {
-              'x-auth-token': `${environment.prefix} ${authToken}`
-            }
-          });
-        }
+        authReq = req.clone({
+          url: `${environment.baseURL}${req.url}`,
+          setHeaders: {
+            'x-auth-token': `bearer ${authToken}`
+          }
+        });
       }else {
         authReq = req.clone({
           url: `${environment.baseURL}${req.url}`
@@ -52,7 +42,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }else{
     commonService.openErrorToast("OFFLINE_MSG_NETWORK")
     return throwError("error");
-  }
+  } 
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
