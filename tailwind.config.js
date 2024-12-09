@@ -20,14 +20,10 @@ module.exports = {
         "blueCircle":"#8AA7C1",
         "cardLightBlue":"#f3f7fa",
         "lightGreen":"#07BC81",
-        "iconGray":"#80868b",
-        "chipPending":"#c99700"
+        "iconGray":"#80868b"
       },
       width: {
         '47%': '47%',
-      },
-      spacing: {
-        '28rem': '28rem',
       },
     },
   },
