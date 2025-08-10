@@ -85,7 +85,7 @@ ngOnInit(){
       })
     )
   }
-  if (this.mode === solutionModes.VIEWONLY || this.mode === solutionModes.REVIEW || this.mode === solutionModes.REVIEWER_VIEW || this.mode === solutionModes.CREATOR_VIEW || this.mode === solutionModes.COPY_EDIT || this.mode === solutionModes.META_EDIT) {
+  if (this.mode === solutionModes.VIEWONLY || this.mode === solutionModes.REVIEW || this.mode === solutionModes.REVIEWER_VIEW || this.mode === solutionModes.CREATOR_VIEW || this.mode === solutionModes.COPY_EDIT || this.mode === solutionModes.META_EDIT || this.mode === solutionModes.PUBLISHED_VIEW) {
     this.viewOnly = true
     // this.getProjectDetailsForViewOnly();
   }
@@ -542,6 +542,9 @@ getsolutionList() {
       }
     )
   );
+  if ((this.programWithRolloutService?.programData?.stage == resourceStatus.REVIEW || this.mode === solutionModes.REVIEWER_VIEW || this.mode === solutionModes.REVIEW ) && (this.mode !== solutionModes.VIEWONLY)) {
+    this.programWithRolloutService.checkValidationForRequestChanges()
+  }
     if(this.mode === solutionModes.EDIT || this.mode === solutionModes.REQUEST_FOR_EDIT) {
       this.programWithRolloutService.formMeta.formValidation.programResources =  (this.programWithRolloutService.programData.resources?.length > 0) ? 'VALID' : 'INVALID'
     }

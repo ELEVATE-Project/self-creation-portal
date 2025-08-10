@@ -173,7 +173,7 @@ export class ResourceLevelTargetingComponent implements OnInit {
         }
       )
     );
-    if (this.mode === solutionModes.VIEWONLY || this.mode === solutionModes.REVIEW || this.mode === solutionModes.REVIEWER_VIEW || this.mode === solutionModes.CREATOR_VIEW || this.mode === solutionModes.COPY_EDIT) {
+    if (this.mode === solutionModes.VIEWONLY || this.mode === solutionModes.REVIEW || this.mode === solutionModes.REVIEWER_VIEW || this.mode === solutionModes.CREATOR_VIEW || this.mode === solutionModes.COPY_EDIT || this.mode == solutionModes.PUBLISHED_VIEW) {
       this.viewOnly = true
       // this.getProjectDetailsForViewOnly();
     }
@@ -578,6 +578,9 @@ export class ResourceLevelTargetingComponent implements OnInit {
     if(!this.programWithRolloutService.formMeta.formValidation) {
       this.programWithRolloutService.setValidationForProgram();
       this.programWithRolloutService.formMeta = this.programWithRolloutService.formMeta
+    }
+    if ((this.programWithRolloutService?.programData?.stage == resourceStatus.REVIEW || this.mode === solutionModes.REVIEWER_VIEW || this.mode === solutionModes.REVIEW ) && (this.mode !== solutionModes.VIEWONLY)) {
+      this.programWithRolloutService.checkValidationForRequestChanges()
     }
     this.programWithRolloutService.formMeta.formValidation.resourceLevelTargeting = this.resourceForm.valid ? 'VALID' : 'INVALID'
     this.subscription.unsubscribe();
