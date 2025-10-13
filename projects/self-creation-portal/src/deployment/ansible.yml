@@ -39,4 +39,4 @@
     - name: Build angular app
       shell: cd {{project_path}} && ng build lib-shared-modules && ng build lib-project && ng build program-with-rollout && ng build self-creation-portal --configuration production
     - name: Start pm2
-      shell: cd {{project_path}} && pm2 start ng serve --port 1690 --host 0.0.0.0 --disable-host-check
+      shell: cd {{project_path}} && ng serve --port 1690 --host 0.0.0.0 --disable-host-check
