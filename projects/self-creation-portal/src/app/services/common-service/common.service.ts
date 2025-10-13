@@ -19,17 +19,18 @@ export class CommonService {
     }
     return `${baseUrl}?${httpParams.toString()}`;
   }
-  
-  generateParams(pagination: any, filters: any, sortOptions: any, pageStatus: string = '' ): { [key: string]: any } { 
+
+  generateParams(pagination: any, filters: any, sortOptions: any, pageStatus: string = '' ): { [key: string]: any } {
     return {
       page: pagination.currentPage + 1,
       limit: pagination.pageSize,
       type: filters.current.type.join(',') || "",
+      resource_type:filters.current.resource_type.join(',') || "",
       status: filters.status || '',
       sort_by:  sortOptions.sort_by || '',
       sort_order: sortOptions.sort_order || '',
       filter: '',
-      search: btoa(filters.search) || '',
+      search: (filters.search) || '',
       listing: pageStatus || '',
       activeFilterButton: filters.activeFilterButton || '',
     };
@@ -40,10 +41,10 @@ export class CommonService {
     pagination.pageSize = +params['limit'] || pagination.pageSize;
     filters.current.type = params['type'] ? params['type'].split(',') : [];
     filters.status = params['status'] || '';
-    filters.search = params['search'] ? atob(params['search']) : '';
+    filters.search = params['search'] ? (params['search']) : '';
     sortOptions.sort_by = params['sort_by'] || '';
     sortOptions.sort_order = params['sort_order'] || '';
-    filters.activeFilterButton = params['activeFilterButton'] || ''; 
+    filters.activeFilterButton = params['activeFilterButton'] || '';
   }
 
   updateQueryParams(params: { [key: string]: any }) {

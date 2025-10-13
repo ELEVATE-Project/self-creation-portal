@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
-import { map } from 'rxjs';
+import { map, Observable, of, switchMap, tap } from 'rxjs';
 import { ConfigService } from '../../configs/config.service';
 import { HttpProviderService } from '../http-provider.service';
-import { PROJECT_DETAILS, CERTIFICATE_DETAILS } from '../../constants/formConstant';
+import { PROJECT_DETAILS, CERTIFICATE_DETAILS , PROGRAM_DETAILS} from '../../constants/formConstant';
+import { IndexDbService } from '../index-db/index-db.service';
+import { IFORM } from '../../interface/form';
 
 
 
@@ -12,20 +14,50 @@ import { PROJECT_DETAILS, CERTIFICATE_DETAILS } from '../../constants/formConsta
 })
 export class FormService {
 
-  constructor(private httpService: HttpProviderService, private configService:ConfigService) { }
+  constructor(private httpService: HttpProviderService, private configService:ConfigService, private indexDb:IndexDbService) { }
 
-  // Getting form from api
-  getForm(formBody: any) {
+
+  getForm(formBody: any): Observable<any> {
     const config = {
       url: this.configService.urlConFig.FORM_URLS.READ_FORM,
       payload: formBody,
     };
-    return this.httpService.post(config.url, config.payload).pipe(
-      map((result: any) => {
-        return result;
+
+    return this.indexDb.getObjectByKey(formBody.sub_type).pipe(
+      switchMap((dbResponse: any) => {
+        if (dbResponse) {
+          // If data is found in IndexedDB, return it
+          return of(dbResponse);
+        } else {
+          // If no data in IndexedDB, make an HTTP request
+          return this.httpService.post(config.url, config.payload).pipe(
+            tap((result: any) => {
+              // Save the result to IndexedDB after a successful HTTP response
+              this.indexDb.addObject({...result,...{customKey:formBody.sub_type}}).subscribe(() => {
+                console.log("Data added to IndexedDB");
+              });
+            }),
+            map((result: any) => result)
+          );
+        }
       })
-    )
+    );
   }
+
+  // getForm(formBody: any) {
+  //   const config = {
+  //     url: this.configService.urlConFig.FORM_URLS.READ_FORM,
+  //     payload: formBody,
+  //   };
+  //   return this.httpService.post(config.url, config.payload).pipe(
+  //     map((result: any) => {
+  //       this.indexDb.addObject({...result,...{customKey:formBody.sub_type}}).subscribe(() => {
+  //         console.log("Data added to IndexedDB");
+  //       });
+  //       return result;
+  //     })
+  //   )
+  // }
 
   getEntities(entityTypes: any) {
     const config = {
@@ -38,6 +70,13 @@ export class FormService {
         return data;
       })
     );
+  }
+
+  getEntitiesList(url: string,entityType?:string,id?:string) {
+    return this.httpService.get(this.configService.urlConFig.FORM_URLS[url]+ (id ? ("/"+id) :'')+ (entityType ? '?'+`entityType=${entityType}` : ''));
+  }
+  getEntitiesListAsType(url: string,entityType?:string,id?:string,page?:number,itemsPerPage?:number) {
+    return this.httpService.get(this.configService.urlConFig.FORM_URLS[url]+ (id ? ("/"+id) :'')+ (entityType ? '?'+`type=${entityType}` : '') + (page ? '&'+`page=${page}` : '') + (itemsPerPage ? '&'+`limit=${itemsPerPage}` : ''));
   }
 
   getEntityNames(formData: any) {
@@ -72,10 +111,10 @@ export class FormService {
   }
 
 
-  getFormWithEntities(form: any): Promise<any> {
+  getFormWithEntities(form: IFORM | string): Promise<any> {
     return new Promise((resolve, reject) => {
       try {
-        this.getForm(PROJECT_DETAILS).subscribe((formResponse:any) => {
+        this.getForm(form).subscribe((formResponse:any) => {
           let formData = formResponse?.result?.data?.fields || [];
           let entityNames = this.getEntityNames(formData);
           this.getEntities(entityNames).subscribe((entities:any) => {

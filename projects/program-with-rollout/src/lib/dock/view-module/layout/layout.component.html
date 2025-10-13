@@ -1,0 +1,9 @@
+<lib-header [headerData]="headerData" [modeFromParent]="mode ? mode : undefined" [config]="config" (buttonClick)="onButtonClick($event)" (backToParent)="backToParent()"></lib-header>
+<div class="main flex">
+    <div class="min-h-[88vh] max-h-[100vh] sticktop">
+        <lib-side-navbar [sidenavData]="sidenavData" [tabValidation]="programWithRolloutService.tabValidationForProgram" [lastReviewed]="getLastReviewedDate()"></lib-side-navbar>
+    </div>
+    <div class="w-full">
+        <router-outlet></router-outlet>
+    </div>
+</div>

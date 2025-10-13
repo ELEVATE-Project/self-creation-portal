@@ -27,12 +27,22 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   if(onlineStatus){
     if (req.headers.get('X-Requested-With') === 'XMLHttpRequest') {
       if(authToken) {
-        authReq = req.clone({
-          url: `${environment.baseURL}${req.url}`,
-          setHeaders: {
-            'x-auth-token': `bearer ${authToken}`
-          }
-        });
+        if(req.url.includes('entity-management')){
+          authReq = req.clone({
+            url: `${environment.baseURL}${req.url}`,
+            setHeaders: {
+              'x-auth-token': `${authToken}`
+            }
+          });
+        }
+        else {
+          authReq = req.clone({
+            url: `${environment.baseURL}${req.url}`,
+            setHeaders: {
+              'x-auth-token': `${environment.prefix} ${authToken}`
+            }
+          });
+        }
       }else {
         authReq = req.clone({
           url: `${environment.baseURL}${req.url}`
@@ -42,11 +52,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }else{
     commonService.openErrorToast("OFFLINE_MSG_NETWORK")
     return throwError("error");
-  } 
+  }
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      commonService.openErrorToast(error.error.message)
+      commonService.openErrorToast(!onlineStatus ? "OFFLINE_MSG_NETWORK" : error.error.message)
+      if(error.status === 403){
+        matDialog.closeAll();
+      }
       if(error.status === 401){
         matDialog.closeAll();
         commonService.navigateToLogin()

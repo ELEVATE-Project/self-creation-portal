@@ -6,6 +6,11 @@
         <div class="px-10 mt-52 mb-6  text-tertiary">
             <p>{{"TASK_DESCRIPTION" | translate}}</p>
         </div>
+        @if(tasks.controls.length > maxTaskLength){
+        <div class="px-10 mt-62 mb-6 text-red-600">
+            <p>{{"THE_MAXIMUM_NUMBER_OF_TASKS_THAT_CAN_BE_ADDED_IS" | translate}}{{maxTaskLength}}</p>
+        </div>
+        }
         <form [formGroup]="tasksForm" (ngSubmit)="submit()" [ngClass]="{'disabled-with-pointer-events': viewOnly}">
             <div formArrayName="tasks">
                 @for(task of tasks.controls; track task; let i = $index){
@@ -28,51 +33,88 @@
                         <div>
                             <mat-form-field floatLabel="always" class="w-full" appearance="outline">
                                 <mat-label> {{"TASK" | translate}} {{i+1}}</mat-label>
-                                <textarea matInput [formControlName]="tasksData?.description.name" (change)="checkValidation()"
-                                    [placeholder]="tasksData?.description.placeholder"  [required]="true" [maxlength]="tasksData.description.validators.maxLength" [pattern]="tasksData.description.validators.pattern" [readonly]="viewOnly"></textarea>
+                                <textarea matInput [formControlName]="tasksData?.description.name" (change)="checkValidation(i)"
+                                    [placeholder]="tasksData?.description.placeholder | languageTranslate: language"  [required]="true" [maxlength]="tasksData.description.validators.maxLength" [pattern]="tasksData.description.validators.pattern" [readonly]="viewOnly"></textarea>
                             </mat-form-field>
+                            @if(tasksData?.description.infoMessage){
+                            <mat-icon
+                                class="absolute pl-1 -mt-[0.3rem] cursor-pointer text-xl text-iconGray enable-with-pointer-events"
+                                [matTooltip]="tasksData?.description.infoMessage | languageTranslate: language"
+                                matTooltipClass="info-tooltip"
+                                matTooltipPosition="above"
+                                [matTooltipDisabled]="true"
+                                #tooltip="matTooltip"
+                                (click)="showTooltip(tooltip)"
+                                (mouseleave)="hideTooltip(tooltip)">info</mat-icon>
+                            }
 
                                 <mat-error class="error-container">
                                     @if(task.get(tasksData?.description.name)?.touched && task.get(tasksData?.description.name)?.invalid){
                                     <div class="error-message">
                                         <mat-icon class="error-icon" matPrefix>error_outline</mat-icon>
-                                        @if(task.get(tasksData?.description.name)?.errors?.['required']){<span>{{ tasksData?.description.errorMessage.required }}</span> }
-                                        @if(task.get(tasksData?.description.name)?.errors?.['maxlength']){ <span>{{ tasksData?.description.errorMessage.maxLength }}</span> }
-                                        @if(task.get(tasksData?.description.name)?.errors?.['pattern']){<span> {{ tasksData?.description.errorMessage.pattern }}</span>}
+                                        @if(task.get(tasksData?.description.name)?.errors?.['required']){<span>{{ tasksData?.description.errorMessage.required | languageTranslate: language }}</span> }
+                                        @if(task.get(tasksData?.description.name)?.errors?.['maxlength']){ <span>{{ tasksData?.description.errorMessage.maxLength | languageTranslate: language}}</span> }
+                                        @if(task.get(tasksData?.description.name)?.errors?.['pattern']){<span> {{ tasksData?.description.errorMessage.pattern | languageTranslate: language}}</span>}
                                     </div>
                                 }
                                 </mat-error>
                         </div>
                         <div class="sm:flex md:flex lg:flex xl:flex gap-2 text-tertiary overlay" [ngClass]="{'disable-fields': viewOnly}">
-                            <mat-slide-toggle (change)="disableSlide($event)"  labelPosition="before" color="primary"
+                            <mat-slide-toggle (change)="disableSlideMandatory($event,task)"  labelPosition="before" color="primary"
                                 [formControlName]="tasksData.mandatory.name" (change)="checkValidation()">
-                                {{tasksData.mandatory.label | translate}}
+                                {{tasksData.mandatory.label |  languageTranslate: language}}
                             </mat-slide-toggle>
 
-                            <mat-slide-toggle  (change)="disableSlide($event)" labelPosition="before" color="primary"
+                            <mat-slide-toggle  (change)="disableSlide($event,task)" labelPosition="before" color="primary"
                                 [formControlName]="tasksData.allowEvidence.name" (change)="checkValidation()">
-                                {{tasksData.allowEvidence.label | translate}}
+                                {{tasksData.allowEvidence.label |  languageTranslate: language}}
                             </mat-slide-toggle>
 
-                            <div class="border px-2 w-40 text-center" formGroupName="evidence_details" [ngClass]="{
+                            <div class="px-2 w-48 text-center" formGroupName="evidence_details" [ngClass]="{
                                 'disabled-with-pointer-events': !task.get(tasksData?.allowEvidence.name)?.value,
                                 'placeholder-text-black': task.get(tasksData?.allowEvidence.name)?.value
                               }">
-                                <mat-select multiple="true" [formControlName]="tasksData.fileType.name" (selectionChange)="checkValidation()" [disabled]="!task.get(tasksData?.allowEvidence.name)?.value" placeholder="All file types">
-                                    <mat-option [matTooltip]="option.label" *ngFor="let option of tasksData.fileType.options" [value]="option.value">
-                                        {{ option.label }}
+                                <mat-select class="border px-2 w-40" multiple="true" [formControlName]="tasksData.fileType.name" (selectionChange)="checkValidation()" placeholder="{{'SELECTE_FILE_TYPES' | translate}">
+                                    <mat-option [matTooltip]="option.label | languageTranslate: language" *ngFor="let option of tasksData.fileType.options" [value]="option.value">
+                                        {{ option.label  | languageTranslate: language}}
                                     </mat-option>
                                 </mat-select>
+                                <div>
+                                    @if(task.get('evidence_details.file_types')?.value.length === 0 && task.get(tasksData?.allowEvidence.name)?.value){
+                                        <mat-error class="error-container">
+                                            <div class="error-message">
+                                                <mat-icon class="error-icon" matPrefix>error_outline</mat-icon>
+                                                 <span>{{"CHOOSE_ATLEAST_ONE_FILE_TYPE" | translate}}</span>
+                                            </div>
+                                        </mat-error>
+                                    }
+                                </div>
                             </div>
-                            <div class="flex gap-2" [ngClass]="{'disabled-with-pointer-event': !task.get(tasksData?.allowEvidence.name)?.value}" formGroupName="evidence_details" >
-                                <p class="text-tertiary">{{tasksData.minEvidences.label | translate}}</p>
-                                <input matInput [readonly]="viewOnly || !task.get(tasksData?.allowEvidence.name)?.value" [formControlName]="tasksData.minEvidences.name" (change)="checkValidation()"
-                                    [disabled]="!task.get(tasksData?.allowEvidence.name)?.value" placeholder="1" type="number"
-                                    [min]="tasksData.minEvidences.validators.min" [max]="tasksData.minEvidences.validators.max"
-                                    class="w-14 block border text-center" (input)="adjustValue($event,task)" />
+                            <div class="flex flex-col">
+                                <div class="flex gap-2" [ngClass]="{'disabled-with-pointer-event': !task.get(tasksData?.allowEvidence.name)?.value}"
+                                    formGroupName="evidence_details">
+                                    <p class="text-tertiary">{{tasksData.minEvidences.label  | languageTranslate: language}}</p>
+                                    <input matInput [readonly]="viewOnly || !task.get(tasksData?.allowEvidence.name)?.value"
+                                        [formControlName]="tasksData.minEvidences.name" (change)="checkValidation()"
+                                        [disabled]="!task.get(tasksData?.allowEvidence.name)?.value" placeholder="1" type="number"
+                                        [min]="tasksData.minEvidences.validators.min" [max]="tasksData.minEvidences.validators.max"
+                                        class="w-14 block border text-center" (input)="adjustValue($event,task)" />
+                                </div>
+                                <div>
+                                    <mat-error class="error-container">
+                                        @if(task.get('evidence_details.min_no_of_evidences')?.touched &&
+                                        task.get('evidence_details.min_no_of_evidences')?.invalid ){
+                                        <div class="error-message">
+                                            <mat-icon class="error-icon" matPrefix>error_outline</mat-icon>
+                                            @if(task.get('evidence_details.min_no_of_evidences')?.errors?.['max']){ <span>{{
+                                                tasksData?.minEvidences.errorMessage.max  | languageTranslate: language}}</span> }
+                                            @if(task.get('evidence_details.min_no_of_evidences')?.errors?.['min']){<span> {{
+                                                tasksData?.minEvidences.errorMessage.min  | languageTranslate: language}}</span>}
+                                        </div>
+                                        }
+                                    </mat-error>
+                                </div>
                             </div>
-
-
                         </div>
                     </div>
                 </div>
@@ -90,5 +132,5 @@
     </div>
 </div>
 @if(commentPayload || projectInReview) {
-    <lib-comments-box [commentPayload]="commentPayload" [resourceId]="projectId" [messages]="commentsList" [mode]="mode" (comment)="saveComment($event)"></lib-comments-box>
+    <lib-comments-box [commentPayload]="commentPayload" [resourceId]="projectId ? projectId : ProgramResourceId" [messages]="commentsList" [mode]="mode" (comment)="saveComment($event)"></lib-comments-box>
 }

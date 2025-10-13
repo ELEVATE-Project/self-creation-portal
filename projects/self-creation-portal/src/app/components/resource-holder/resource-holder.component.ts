@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { CardComponent, FilterComponent, HeaderComponent, PaginationComponent, SearchComponent, SideNavbarComponent, NoResultFoundComponent, DialogPopupComponent, FormService, SIDE_NAV_DATA, PROJECT_DETAILS_PAGE, ToastService, UtilService ,resourceStatus, reviewStatus ,projectMode} from 'lib-shared-modules';
+import { CardComponent, FilterComponent, HeaderComponent, PaginationComponent, SearchComponent, SideNavbarComponent, NoResultFoundComponent, DialogPopupComponent, FormService, SIDE_NAV_DATA, PROJECT_DETAILS_PAGE, ToastService, UtilService ,resourceStatus, reviewStatus , ArrayContainsAllDirective, solutionModes, RESOURCE_LIST, PROGRAM_DETAILS_PAGE, CardDialogPopupComponent, CHOOSE_RESOURCES, } from 'lib-shared-modules';
 import { TranslateModule } from '@ngx-translate/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ResourceService } from '../../services/resource-service/resource.service';
@@ -13,13 +13,16 @@ import { CommonService } from '../../services/common-service/common.service';
 import { LibProjectService } from 'lib-project';
 import { MatDialog } from '@angular/material/dialog';
 import { DatePipe } from '@angular/common';
-import { RESOURCE_URLS } from '../../services/configs/url.config.json';
+import { RESOURCE_URLS, ROLL_OUT_URLS } from '../../services/configs/url.config.json';
+import { CommonModule } from '@angular/common';
+import { map, Observable, Subscription } from 'rxjs';
+import { ProgramWithRolloutService } from 'program-with-rollout';
 
 
 @Component({
   selector: 'app-resource-holder',
   standalone: true,
-  imports: [HeaderComponent,SideNavbarComponent, CardComponent, SearchComponent, PaginationComponent, FilterComponent, MatSidenavModule, MatButtonModule, MatIconModule, MatToolbarModule, MatListModule, MatCardModule,TranslateModule, NoResultFoundComponent],
+  imports: [HeaderComponent,SideNavbarComponent, CardComponent, SearchComponent, PaginationComponent, FilterComponent, MatSidenavModule, MatButtonModule, MatIconModule, MatToolbarModule, MatListModule, MatCardModule,TranslateModule, NoResultFoundComponent, CommonModule, ArrayContainsAllDirective],
   templateUrl: './resource-holder.component.html',
   styleUrl: './resource-holder.component.scss',
   providers: [DatePipe]
@@ -27,17 +30,18 @@ import { RESOURCE_URLS } from '../../services/configs/url.config.json';
 export class ResourceHolderComponent implements OnInit{
 
   @ViewChild(PaginationComponent) paginationComponent!: PaginationComponent;
-
+  resourceList : any;
   pagination = {
     totalCount: 0,
     pageSize: 10,
     pageSizeOptions: [5, 10, 20, 100],
     currentPage: 0
   };
+  permissions:any = [];
 
   filters = {
     search: '',
-    current: { type: [] as string[] },
+    current: { type: [] as string[] , resource_type: [] as string[]},
     status: '' as string,
     filteredLists: [] as any[],
     filterData: [] as any, //to store filterarray data json coming from formapi
@@ -53,6 +57,7 @@ export class ResourceHolderComponent implements OnInit{
     sort_order: ''
   };
 
+  preservedStatus:any
   lists:any = [];
   noResultMessage!: string ;
   noResultFound !: string;
@@ -62,6 +67,9 @@ export class ResourceHolderComponent implements OnInit{
   buttonsCSS : any;
   activeRole:any;
   areQueryParamsEmpty:boolean = false;
+  showDates:boolean = false;
+  language:any = JSON.parse(localStorage.getItem('preferred_language') ?? '{}')?.value ?? 'en';
+  private subscription: Subscription = new Subscription();
 
   constructor(
     private route: ActivatedRoute,
@@ -73,11 +81,23 @@ export class ResourceHolderComponent implements OnInit{
     private dialog : MatDialog,
     private toastService:ToastService,
     private datePipe: DatePipe,
-    private utilService:UtilService) {
+    private utilService:UtilService,
+    private programWithRolloutService:ProgramWithRolloutService) {
   }
 
   ngOnInit() {
     this.loadSidenavData();
+    this.getsolutionList()
+
+    this.subscription.add(  // set a language
+      this.utilService.isLanguageChanges.subscribe(
+        (language: boolean) => {
+          if (language) {
+            this.language = language
+          }
+        }
+      )
+    );
   }
 
   /**
@@ -111,6 +131,9 @@ export class ResourceHolderComponent implements OnInit{
       this.noResultFound = this.noResultMessage;
       this.filters.showActionButton = this.buttonsData;
       this.filters.showInfoIcon = true;
+      if(this.pageStatus === 'roll-out'){
+        this.showDates = true
+      }
     });
   }
 
@@ -148,10 +171,15 @@ export class ResourceHolderComponent implements OnInit{
       this.filters.current.type = event.values;
       // Clear filter button action when type filter is applied
       this.filters.activeFilterButton = '';
-      this.filters.status = ''
+      this.filters.status = (this.filters.status ==  'REQUESTED_FOR_CHANGES') ? '' : this.filters.status;
     } else if (filterName === 'status') {
+      this.preservedStatus = event.values;
       this.filters.status = event.values;
       // Clear filter button action when status filter is applied
+      this.filters.activeFilterButton = '';
+    } else if(filterName === 'resource_type'){
+       this.filters.current.resource_type = event.values;
+      // Clear filter button action when type filter is applied
       this.filters.activeFilterButton = '';
     }
     this.pagination.currentPage = 0;
@@ -178,6 +206,7 @@ export class ResourceHolderComponent implements OnInit{
    */
   getList() {
     let listType: keyof typeof RESOURCE_URLS.ENDPOINTS = 'RESOURCE_LIST';
+    let url:any;
     switch (this.pageStatus) {
       case 'drafts':
       case 'submitted_for_review':
@@ -189,8 +218,11 @@ export class ResourceHolderComponent implements OnInit{
       case 'browse_existing':
         listType = 'BROWSE_EXISTING_LIST';
         break;
+      case 'roll-out':
+        url = ROLL_OUT_URLS.ROLL_OUT_LIST;
+        break;
     }
-    this.resourceService.getResourceList(this.pagination, this.filters, this.sortOptions, this.pageStatus,listType).subscribe(response => {
+    this.resourceService.getResourceList(this.pagination, this.filters, this.sortOptions, this.pageStatus,listType, url).subscribe(response => {
       this.handleResponse(response);
     });
   }
@@ -225,13 +257,17 @@ export class ResourceHolderComponent implements OnInit{
     }
     cardItems.forEach((cardItem: any) => {
       cardItem.actionButton = [];
+      cardItem.showDates = false
+      if(cardItem.type === 'program'){
+        cardItem.showDates = true;
+      }
       if (this.buttonsData) {
         this.buttonsData.some((button: any) => {
           if (this.buttonsCSS[button]) {
             cardItem.actionButton.push(this.buttonsCSS[button]);
           }
           if (button.buttons) {
-            if(button.status === cardItem.review_status){
+            if(button.status === cardItem.status){
               if(cardItem.is_under_edit){
                 this.applyButtons({
                   "buttons": [
@@ -241,8 +277,15 @@ export class ResourceHolderComponent implements OnInit{
               }else{
                 this.applyButtons(button, cardItem);
               }
+              if(button.status == resourceStatus.PUBLISHED && cardItem.type == 'program' && !cardItem.is_under_edit){
+                this.applyButtons({
+                  "buttons": [
+                      "EDIT",
+                  ]
+              }, cardItem);
+              }
               return true;
-            }else if(button.status === cardItem.status){
+            }else if(button.status === cardItem.review_status){
               this.applyButtons(button, cardItem);
               return true;
             }
@@ -291,124 +334,234 @@ applyButtons(button: any, cardItem: any, clearExisting: boolean = false): void {
    * @param event -listresource api response.
    * event click action for each label
    */
-  statusButtonClick(event: { label: string, item: any }) {
-     const { label, item } = event;
-     switch (label) {
-       case 'EDIT':
-       case 'RESUME_EDITING':
-        if(item.review_status == reviewStatus.REQUEST_FOR_CHANGES && this.activeRole == "creator"){
-          this.router.navigate([PROJECT_DETAILS_PAGE], {
-            queryParams: {
-              projectId: item.id,
-              mode: projectMode.REQUEST_FOR_EDIT,
-              parent:"review"
-            }
-          });
-          break;
-        }else{
-          this.router.navigate([PROJECT_DETAILS_PAGE], {
-            queryParams: {
-              projectId: item.id,
-              mode: projectMode.EDIT,
-              parent:"draft"
-            }
-          });
-          break;
-        }
+  statusButtonClick(event: { button:any, item: any }) {
+    const { button, item } = event;
+    //  if(this.pageStatus === 'roll-out'){
 
-       case 'DELETE':
-         this.confirmAndDeleteProject(item)
-         break;
-       case 'VIEW':
-         if(item.status == resourceStatus.SUBMITTED && this.activeRole == "creator"){
+    //  }else{
+      switch (button.label) {
+        case 'EDIT':
+          if(item.review_status == reviewStatus.REQUEST_FOR_CHANGES && item.type == 'program' && this.pageStatus !== 'roll-out'){
+            this.router.navigate([PROGRAM_DETAILS_PAGE], {
+              queryParams: {
+                parent: 'review',
+                programId: item.id,
+                mode: solutionModes.REQUEST_FOR_EDIT,
+              },
+            });
+            break;
+          }
+          if(item.type == 'program' && item.review_status === resourceStatus.REQUEST_FOR_CHANGES && item.status == resourceStatus.PUBLISHED){
+            this.router.navigate([PROGRAM_DETAILS_PAGE], {
+              queryParams: {
+                parent: 'review',
+                programId: item.id,
+                mode: solutionModes.REQUEST_FOR_EDIT,
+              },
+            });
+            break;
+          }
+          if(item.type == 'program' && this.pageStatus !== 'roll-out' && item.status == resourceStatus.PUBLISHED && item.review_status !== resourceStatus.REQUEST_FOR_CHANGES){
+            // as per discussion on 11  april 2025 we are taking only one flow for edit
+            // this.confirmProgramEdit().subscribe((result:any) =>{
+            //   switch(result.data.title){
+            //     case 'CHANGE_DETAILS': {
+            //       this.router.navigate([PROGRAM_DETAILS_PAGE], {
+            //         queryParams: {
+            //           parent: 'review',
+            //           programId: item.id,
+            //           mode: solutionModes.META_EDIT,
+            //         },
+            //       });
+            //       break;
+            //     }
+            //     case 'ADD_RESOURCES': {
+            //       this.router.navigate([PROGRAM_DETAILS_PAGE], {
+            //         queryParams: {
+            //           parent: 'review',
+            //           programId: item.id,
+            //           mode: solutionModes.RESOURCE_EDIT,
+            //         },
+            //       });
+            //       break;
+            //     }
+            //   }
+            // })
+            this.router.navigate([PROGRAM_DETAILS_PAGE], {
+              queryParams: {
+                parent: 'review',
+                programId: item.id,
+                mode: solutionModes.RESOURCE_EDIT,
+              },
+            });
+            break;
+          }
+          if(item.type == 'program' && this.pageStatus !== 'roll-out'){
+            this.router.navigate([PROGRAM_DETAILS_PAGE],{queryParams:{parent:"draft", programId:item.id, mode: solutionModes.EDIT}})
+            break;
+          }
+          if(this.pageStatus === 'roll-out'){
+            this.router.navigate(['roll-out/details/project-details'],{queryParams:{parent:"roll-out", resourceId:event.item.resource_id,rolloutId:event.item.id}})
+            break;
+          }
+          if(item.review_status == reviewStatus.REQUEST_FOR_CHANGES && this.activeRole == "creator"){
+            this.router.navigate([PROJECT_DETAILS_PAGE], {
+              queryParams: {
+                projectId: item.id,
+                mode: solutionModes.REQUEST_FOR_EDIT,
+                parent:"review"
+              }
+            });
+            break;
+          }else{
+            this.router.navigate([PROJECT_DETAILS_PAGE], {
+              queryParams: {
+                projectId: item.id,
+                mode: solutionModes.EDIT,
+                parent:"draft"
+              }
+            });
+            break;
+          }
+        case 'RESUME_EDITING':
+          if(item.type == 'program' && this.pageStatus !== 'roll-out' && item.status == resourceStatus.PUBLISHED && item.review_status !== resourceStatus.REQUEST_FOR_CHANGES){
+            this.router.navigate([PROGRAM_DETAILS_PAGE], {
+              queryParams: {
+                parent: 'review',
+                programId: item.id,
+                mode: solutionModes.RESOURCE_EDIT,
+              },
+            });
+            break;
+          }
+          if(item.review_status == reviewStatus.REQUEST_FOR_CHANGES && item.type == 'program' && this.pageStatus !== 'roll-out'){
+            this.router.navigate([PROGRAM_DETAILS_PAGE], {
+              queryParams: {
+                parent: 'review',
+                programId: item.id,
+                mode: solutionModes.REQUEST_FOR_EDIT,
+              },
+            });
+            break;
+          }else if(item.review_status == reviewStatus.REQUEST_FOR_CHANGES && this.activeRole == "creator"){
            this.router.navigate([PROJECT_DETAILS_PAGE], {
              queryParams: {
                projectId: item.id,
-               mode: projectMode.VIEWONLY,
+               mode: solutionModes.REQUEST_FOR_EDIT,
                parent:"review"
              }
            });
            break;
-         }else if(item.status == resourceStatus.SUBMITTED && this.activeRole == "reviewer"){
-           this.router.navigate([PROJECT_DETAILS_PAGE], {
-             queryParams: {
-               projectId: item.id,
-               mode: projectMode.REVIEWER_VIEW,
-               parent:"up-for-review"
-             }
-           });
-           break;
-         }else if(item.review_status  == reviewStatus.CHANGES_UPDATED && this.activeRole == "reviewer"){
-          this.router.navigate([PROJECT_DETAILS_PAGE], {
-            queryParams: {
-              projectId: item.id,
-              mode: projectMode.REVIEWER_VIEW,
-              parent:"up-for-review"
-            }
-          });
-          break;
-        }else if(item.review_status == reviewStatus.REQUEST_FOR_CHANGES && this.activeRole == "creator"){
-          this.router.navigate([PROJECT_DETAILS_PAGE], {
-            queryParams: {
-              projectId: item.id,
-              mode: projectMode.CREATOR_VIEW,
-              parent:"review"
-            }
-          });
-          break;
-         }
-         else if(item.review_status == reviewStatus.CHANGES_UPDATED && this.activeRole == "creator" ){
-          this.router.navigate([PROJECT_DETAILS_PAGE], {
-            queryParams: {
-              projectId: item.id,
-              mode: projectMode.VIEWONLY,
-              parent:"review"
-            }
-          });
-          break;
-        }else if(item.status && this.activeRole == "creator"){
-           this.router.navigate([PROJECT_DETAILS_PAGE], {
-             queryParams: {
-               projectId: item.id,
-               mode: projectMode.VIEWONLY,
-               parent:"review"
-             }
-           });
-           break;
-         }else if(item.status){  
-          this.router.navigate([PROJECT_DETAILS_PAGE], {
-            queryParams: {
-              projectId: item.id,
-              mode: projectMode.VIEWONLY,
-            }
-          });
-          break;  
          }else{
-          break;
+           this.router.navigate([PROJECT_DETAILS_PAGE], {
+             queryParams: {
+               projectId: item.id,
+               mode: solutionModes.EDIT,
+               parent:"draft"
+             }
+           });
+           break;
          }
 
-       case 'START_REVIEW':
-        this.utilService.startOrResumeReview(item.id).subscribe((data)=>{})
-         this.router.navigate([PROJECT_DETAILS_PAGE], {
-           queryParams: {
-             projectId: item.id,
-             mode: projectMode.REVIEW,
-             parent:"up-for-review"
-           }
-         });
-         break;
-       case 'RESUME_REVIEW':
-         this.router.navigate([PROJECT_DETAILS_PAGE], {
-           queryParams: {
-             projectId: item.id,
-             mode: projectMode.REVIEW,
-             parent:"up-for-review"
-           }
-         })
-         break;
-       default:
-         break;
-     }
+        case 'DELETE':
+          this.confirmAndDeleteProject( this.pageStatus === 'roll-out' ? "DELETE_ROLLOUT":"CONFIRM_DELETE_MESSAGE").subscribe((isdelete) => {
+            if(isdelete){
+              if(item.type == 'program' &&  this.pageStatus !== 'roll-out'){
+               // delete api integartion for program delete
+                this.deleteProgram(item);
+              }
+              else if(this.pageStatus === 'roll-out'){
+                this.deleteRollout(item);
+              }else{
+                this.deleteProject(item);
+              }
+            }
+          })
+          break;
+        case 'VIEW':
+          const isProgram = item.type === 'program';
+          const detailsPage = isProgram ? PROGRAM_DETAILS_PAGE : PROJECT_DETAILS_PAGE;
+          const idParam = isProgram ? { programId: item.id } : { projectId: item.id };
+          let queryParams: any = {};
+
+          if (item.status === resourceStatus.SUBMITTED) {
+            if (this.activeRole === 'creator') {
+              queryParams = { ...idParam, mode: solutionModes.VIEWONLY, parent: 'review' };
+            } else if (this.activeRole === 'reviewer') {
+              queryParams = { ...idParam, mode: solutionModes.REVIEWER_VIEW, parent: 'up-for-review' };
+            }
+          } else if (item.review_status === reviewStatus.CHANGES_UPDATED) {
+            queryParams = { ...idParam, mode: solutionModes.REVIEWER_VIEW, parent: 'up-for-review' };
+          } else if (item.review_status === reviewStatus.REQUEST_FOR_CHANGES && this.activeRole === 'creator') {
+            queryParams = { ...idParam, mode: solutionModes.CREATOR_VIEW, parent: 'review' };
+          } else if (item.review_status === reviewStatus.CHANGES_UPDATED && this.activeRole === 'creator') {
+            queryParams = { ...idParam, mode: solutionModes.VIEWONLY, parent: 'review' };
+          } else if (item.status) {
+            queryParams = { ...idParam, mode: solutionModes.VIEWONLY };
+            if (this.activeRole === 'creator') {
+              queryParams.parent = 'review';
+            }
+          } else {
+            queryParams = { ...idParam, mode: solutionModes.COPY_EDIT, parent: 'browse-existing' };
+          }
+
+          this.router.navigate([detailsPage], { queryParams });
+          break;
+
+
+        case 'START_REVIEW':
+          if(item.type == 'program' && this.pageStatus !== 'roll-out'){
+            this.utilService.startOrResumeReview(item.id).subscribe((data)=>{
+              this.router.navigate([PROGRAM_DETAILS_PAGE], {
+                queryParams: {
+                  programId: item.id,
+                  mode: solutionModes.REVIEW,
+                  parent:"up-for-review"
+                }
+              });
+            })
+            break;
+          }else if(item.type == 'project'){
+            this.utilService.startOrResumeReview(item.id).subscribe((data)=>{
+              this.router.navigate([PROJECT_DETAILS_PAGE], {
+                queryParams: {
+                  projectId: item.id,
+                  mode: solutionModes.REVIEW,
+                  parent:"up-for-review"
+                }
+              });
+            })
+            break;
+          }else{
+            break;
+          }
+
+        case 'RESUME_REVIEW':
+          if(item.type == 'program' && this.pageStatus !== 'roll-out'){
+            this.router.navigate([PROGRAM_DETAILS_PAGE], {
+              queryParams: {
+                programId: item.id,
+                mode: solutionModes.REVIEW,
+                parent:"up-for-review"
+              }
+            })
+            break;
+          }else if(item.type == 'project'){
+            this.router.navigate([PROJECT_DETAILS_PAGE], {
+              queryParams: {
+                projectId: item.id,
+                mode: solutionModes.REVIEW,
+                parent:"up-for-review"
+              }
+            })
+            break;
+          }else{
+            break;
+          }
+        default:
+          break;
+      }
+    //  }
    }
 
   /**
@@ -418,7 +571,7 @@ applyButtons(button: any, cardItem: any, clearExisting: boolean = false): void {
   filterButtonClickEvent(event : { label: string }) {
     if(this.filters.activeFilterButton === event.label) {
       this.filters.activeFilterButton = '';
-      this.filters.status = '';
+      this.filters.status = this.preservedStatus;
     } else {
       this.filters.activeFilterButton = event.label;
       this.filters.status = event.label;
@@ -463,6 +616,8 @@ applyButtons(button: any, cardItem: any, clearExisting: boolean = false): void {
     let infoFields = [];
     if (!cardItem.review_status && (cardItem.status === resourceStatus.SUBMITTED || cardItem.status === 'IN_REVIEW')) {
       infoFields = filterAndMapFields('NOT_STARTED');
+    } else if(cardItem.review_status === 'INPROGRESS' && cardItem.status === 'IN_REVIEW') {
+      infoFields = filterAndMapFields('IN_REVIEW');
     } else {
       infoFields = filterAndMapFields(cardItem.review_status);
     }
@@ -470,6 +625,14 @@ applyButtons(button: any, cardItem: any, clearExisting: boolean = false): void {
     // If no fields match the conditions, default to 'NOT_STARTED' fields
     if (infoFields.length === 0) {
       infoFields = filterAndMapFields('NOT_STARTED');
+    }
+    if(!cardItem.review_status) {
+      infoFields = filterAndMapFields(cardItem.status);
+    }
+
+    if(cardItem.type == 'program') {
+      infoFields.push({label: 'START_DATE', value:  this.datePipe.transform(cardItem.start_date, 'dd/MM/yyyy'), name: 'start_date'})
+      infoFields.push({label: 'END_DATE', value:  this.datePipe.transform(cardItem.end_date, 'dd/MM/yyyy'), name: 'end_date'})
     }
 
     const dialogRef = this.dialog.open(DialogPopupComponent, {
@@ -486,11 +649,49 @@ applyButtons(button: any, cardItem: any, clearExisting: boolean = false): void {
   }
 
   /**
-   * This functions delete the resource using delete resource api.
+   * This functions delete the project using delete project api.
    * @param item - listresource api response.
  */
   deleteProject(item: any) {
     this.libProjectService.deleteProject(item.id).subscribe((response : any) => {
+      if (this.lists.length === 1 && this.pagination.currentPage > 0) {
+        this.pagination.currentPage -= 1;
+      }
+      this.toastService.openSnackBar({
+        "message": 'RESOURCE_DELETED_SUCCESSFULLY',
+        "class": "success"
+      })
+      if(this.paginationComponent) {
+      this.paginationComponent.setToPage(this.pagination.currentPage);
+    }
+    this.getList();
+    this.updateQueryParams();
+    })
+  }
+
+  deleteRollout(item:any){
+    this.programWithRolloutService.deleteRollout(item.id).subscribe((response : any) => {
+      if (this.lists.length === 1 && this.pagination.currentPage > 0) {
+        this.pagination.currentPage -= 1;
+      }
+      this.toastService.openSnackBar({
+        "message": 'ROLLOUT_DELETED',
+        "class": "success"
+      })
+      if(this.paginationComponent) {
+      this.paginationComponent.setToPage(this.pagination.currentPage);
+    }
+    this.getList();
+    this.updateQueryParams();
+    })
+  }
+
+ /**
+   * This functions delete the program using delete program api.
+   * @param item - listresource api response.
+ */
+  deleteProgram(item:any){
+    this.programWithRolloutService.deleteProgram(item.id).subscribe((response : any) => {
       if (this.lists.length === 1 && this.pagination.currentPage > 0) {
         this.pagination.currentPage -= 1;
       }
@@ -511,33 +712,85 @@ applyButtons(button: any, cardItem: any, clearExisting: boolean = false): void {
    * @param item -this is resourcelist item
    * @return open the dialogpopup to delete the resource
    */
-  confirmAndDeleteProject(item: any) {
+
+  confirmAndDeleteProject(message:string="CONFIRM_DELETE_MESSAGE" ): Observable<boolean> {
     const dialogRef = this.dialog.open(DialogPopupComponent, {
       width: '39.375rem',
       disableClose: true,
-      data : {
+      data: {
         header: "DELETE_RESOURCE",
-        content:"CONFIRM_DELETE_MESSAGE",
-        cancelButton:"CANCEL",
-        exitButton:"DELETE"
+        content: message,
+        cancelButton: "CANCEL",
+        exitButton: "DELETE"
       }
-      });
+    });
 
-      dialogRef.afterClosed().subscribe(result => {
-        if(result.data === "CANCEL"){
-          return true
-        } else if(result.data === "DELETE"){
-          this.deleteProject(item);
-          return true
-        } else {
-          return false
+    return dialogRef.afterClosed().pipe(
+      map((result) => {
+        if (result?.data === "DELETE") {
+          return true;
         }
-      });
+        return false;
+      })
+    );
   }
 
 
   navigateToCreateNew() {
     this.router.navigate(['home/create-new'], {})
+  }
+
+  getsolutionList() {
+    this.formService.getPermissions().subscribe((res:any) => {
+      this.formService.getForm(RESOURCE_LIST).subscribe((form) =>{
+        this.permissions = res.result;
+        localStorage.setItem("permission",JSON.stringify(this.permissions));
+        this.resourceList = form?.result?.data?.fields?.controls
+        if(this.pageStatus == 'roll-out') {
+          this.resourceList = this.resourceList.filter((item:any) => {
+            if(item.title != "PROGRAM") {
+              return item
+            }
+          })
+        }
+        // this.resourceList = this.formService.checkPermissions(this.resourceList,res.result)
+        // let userRoles:any = localStorage.getItem('user_roles')
+        // userRoles = JSON.parse(userRoles)
+        // if(!userRoles.find((item:any)=> item.title == 'content_creator')) {
+        //   this.router.navigate(['/home/up-for-review'])
+        // }
+      })
+    })
+  }
+
+  onCardClick(cardItem: any) {
+    this.router.navigate([CHOOSE_RESOURCES],{queryParams:{parent:"roll-out",selectFor:'roll-out', type:cardItem.type}})
+  }
+
+
+  confirmProgramEdit(){
+    const dialogRef = this.dialog.open(CardDialogPopupComponent, {
+      width: '39.375rem',
+      disableClose: true,
+      data: {
+        header: "EDIT_PUBLISHED_PROGRAM",
+        cardDetails:[{item:1, title:"CHANGE_DETAILS", image:'./../assets/images/date.png'}, {item:2, title: "ADD_RESOURCES", image:'./../assets/images/mcq.png'}]
+      }
+    });
+
+    return dialogRef.afterClosed().pipe(
+      map((result) => {
+        if (result?.data) {
+          return result;
+        }
+        return false;
+      })
+
+    );
+  }
+
+  ngOnDestroy(){
+    this.subscription.unsubscribe();
   }
 
 }

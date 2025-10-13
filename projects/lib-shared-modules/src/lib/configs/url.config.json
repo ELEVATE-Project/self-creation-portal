@@ -15,7 +15,28 @@
     },
     "FORM_URLS": {
         "READ_FORM": "scp/v1/form/read",
-        "READ_ENTITY_TYPE": "scp/v1/entity-types/read"
+        "READ_ENTITY_TYPE": "scp/v1/entity-types/read",
+        "GET_ENTITIES_LIST":"entity-management/v1/entities/entityListBasedOnEntityType",
+        "GET_SUB_ENTITIES_LIST":"entity-management/v1/entities/subEntityList",
+        "GET_ENTITY_ROLES":"entity-management/v1/entities/targetedRoles",
+        "GET_ENTITY_HIERARCHY":"entity-management/v1/entities/subEntityListBasedOnRoleAndLocation"
+    },
+    "ROLL_OUT":{
+        "CREATE_UPDATE_DELETE":"scp/v1/rollouts/update",
+        "DETAILS":"scp/v1/rollouts/details",
+        "PUBLISH":"scp/v1/rollouts/publish",
+        "ROLLOUT_MANAGER_LIST":"scp/v1/rollouts/getDataManagers"
+    },
+    "PROGRAM_URLS":{
+       "PUBLISHED_RESOURCES":"scp/v1/resource/getPublishedResources",
+       "CREATE_OR_UPDATE_PROGRAM":"scp/v1/programs/update",
+       "ADD_RESOURCES_TO_PROGRAMS":"scp/v1/programs/addResources",
+       "READ_PROGRAM":"scp/v1/programs/details/",
+       "PROGRAM_MANAGER_LIST":"scp/v1/programs/getProgramManagers",
+       "REMOVE_RESOURCE":"scp/v1/programs/removeResources",
+       "GET_REVIEWER_LIST":"scp/v1/programs/reviewerList",
+       "SEND_FOR_REVIEW":"scp/v1/programs/submitForReview",
+       "PUBLISH_PROGRAM_CHANGES":"scp/v1/programs/publish"
     },
     "LOGOUT_URLS": {
         "LOGOUT_API": "/user/v1/account/logout"
@@ -31,5 +52,16 @@
     },
     "UPLOAD":{
         "SIGNED_URL":"scp/v1/cloud-services/file/getSignedUrl"
+    },
+    "RESOURCE_LISTS_URLS": {
+        "BASE": "scp/v1/resource/",
+        "ENDPOINTS": {
+            "RESOURCE_LIST": "list",
+            "UP_FOR_REVIEW_LIST": "upForReview",
+            "BROWSE_EXISTING_LIST": "getPublishedResources"
+        }
+    },
+    "SET_LANGUAGE":{
+        "SET_LANGUAGE_PREFERENCE":"user/v1/user/setLanguagePreference"
     }
 }

@@ -1,6 +1,6 @@
 import { AfterViewChecked, Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { HeaderComponent, SideNavbarComponent, DialogModelComponent, DialogPopupComponent, UtilService ,projectMode,resourceStatus} from 'lib-shared-modules';
+import { HeaderComponent, SideNavbarComponent, DialogModelComponent, DialogPopupComponent, UtilService ,resourceStatus, solutionModes, ToastService, PROGRAM_RESOURCES} from 'lib-shared-modules';
 import { MatIconModule, getMatIconFailedToSanitizeLiteralError } from '@angular/material/icon';
 import { MatCardModule }  from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,6 +14,7 @@ import { Subscription } from 'rxjs/internal/Subscription';
 import { v4 as uuidv4 } from 'uuid';
 import { CommonModule } from '@angular/common';
 import { CommentsBoxComponent } from 'lib-shared-modules';
+import { DynamicFormModule } from 'dynamic-form-suma';
 
 @Component({
   selector: 'lib-sub-tasks-resources',
@@ -30,13 +31,13 @@ import { CommentsBoxComponent } from 'lib-shared-modules';
     TranslateModule,
     ReactiveFormsModule,
     FormsModule,
-    CommentsBoxComponent
+    CommentsBoxComponent,
+    DynamicFormModule
   ],
   templateUrl: './sub-tasks-resources.component.html',
   styleUrl: './sub-tasks-resources.component.scss'
 })
-export class SubTasksResourcesComponent implements OnInit,OnDestroy{
-  myForm: FormGroup = this.fb.group({});
+export class SubTasksResourcesComponent implements OnInit,OnDestroy, AfterViewChecked{
   resources:any;
   taskData : any[] = [];
   subtask: FormGroup;
@@ -48,10 +49,14 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy{
   commentPayload:any;
   commentsList:any = [];
   projectInReview:boolean = false;
+  observationFormDetails:any;
+  allowOpenLinks:boolean = false;
+  ProgramResourceId:string|number = ''
   private subscription: Subscription = new Subscription();
   private autoSaveSubscription: Subscription = new Subscription();
+  language:any = JSON.parse(localStorage.getItem('preferred_language') ?? '{}')?.value ?? 'en';
 
-  constructor(private dialog : MatDialog,private fb: FormBuilder,private libProjectService:LibProjectService, private route:ActivatedRoute, private router:Router, private utilService:UtilService) {
+  constructor(private dialog : MatDialog,private fb: FormBuilder,private libProjectService:LibProjectService, private route:ActivatedRoute, private router:Router, private utilService:UtilService, private toastService:ToastService) {
     this.subtask = this.fb.group({
       subtasks: this.fb.array([])
     });
@@ -60,22 +65,47 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy{
   ngOnInit() {
     this.subscription.add(
     this.libProjectService.currentProjectMetaData.subscribe(data => {
+      this.allowOpenLinks =  data?.tasksData.allowOpenLinks
       this.learningResources = data?.tasksData.subTaskLearningResources
+      this.observationFormDetails =  data?.tasksData.observationDeatils
     })
     )
     this.subscription.add(
       this.route.queryParams.subscribe((params:any) => {
         this.mode = params.mode;
+        this.ProgramResourceId = params.programResourceId;
         this.projectId = params.projectId;
-        if(params.mode){
-          if(Object.keys(this.libProjectService.projectData)?.length) {
+       if(params.mode){
+          if(params.programId){
+            if(Object.keys(this.libProjectService.projectData)?.length) {
+              this.projectData = this.libProjectService.projectData;
+              this.createSubTaskForm()
+              this.addSubtaskData()
+            }
+            else {
+              this.libProjectService.readProgram(params.programId).subscribe((res:any)=> {
+                this.libProjectService.programData = res.result;
+                const matchedResource = res.result.resources.find((resource:any) =>resource.id == params.programResourceId);
+                this.libProjectService.setProjectData(matchedResource);
+                this.libProjectService.projectData = matchedResource;
+                this.libProjectService.formMeta = matchedResource.formMeta ? matchedResource.formMeta : this.libProjectService.formMeta;
+                this.projectData = matchedResource
+                this.createSubTaskForm()
+                this.addSubtaskData()
+              })
+            }
+            if ((this.libProjectService?.projectData?.stage == resourceStatus.REVIEW || this.mode === solutionModes.REVIEWER_VIEW || this.mode === solutionModes.REVIEW || this.mode === solutionModes.REQUEST_FOR_EDIT || this.mode === solutionModes.CREATOR_VIEW || this.mode === solutionModes.META_REQUEST_FOR_EDIT || this.mode === solutionModes.META_REVIEW)&& (this.mode !==  solutionModes.VIEWONLY)) {
+              this.getCommentConfigs()
+            }
+          }
+          else if(Object.keys(this.libProjectService.projectData)?.length && this.projectId) {
             this.projectData = this.libProjectService.projectData;
             this.createSubTaskForm()
             this.addSubtaskData()
-            if (params.mode === projectMode.EDIT || params.mode === projectMode.REQUEST_FOR_EDIT) {
+            if (params.mode === solutionModes.EDIT || params.mode === solutionModes.REQUEST_FOR_EDIT) {
               this.startAutoSaving();
             }
-            if ((this.libProjectService?.projectData?.status == resourceStatus.IN_REVIEW || this.mode === projectMode.REVIEWER_VIEW || this.mode === projectMode.REVIEW)&& (this.mode !==  projectMode.VIEWONLY)) {
+            if ((this.libProjectService?.projectData?.stage == resourceStatus.REVIEW || this.mode === solutionModes.REVIEWER_VIEW || this.mode === solutionModes.REVIEW || this.mode === solutionModes.REQUEST_FOR_EDIT || this.mode === solutionModes.CREATOR_VIEW || this.mode === solutionModes.META_REQUEST_FOR_EDIT || this.mode === solutionModes.META_REVIEW)&& (this.mode !==  solutionModes.VIEWONLY)) {
               this.getCommentConfigs()
             }
           }
@@ -86,16 +116,16 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy{
              this.libProjectService.formMeta = res.result.formMeta ? res.result.formMeta : this.libProjectService.formMeta;
               this.createSubTaskForm()
               this.addSubtaskData()
-              if (params.mode === projectMode.EDIT || this.mode === projectMode.REQUEST_FOR_EDIT) {
+              if (params.mode === solutionModes.EDIT || this.mode === solutionModes.REQUEST_FOR_EDIT) {
               this.startAutoSaving();
             }
-            if ((this.libProjectService?.projectData?.status == resourceStatus.IN_REVIEW || this.mode === projectMode.REVIEWER_VIEW || this.mode === projectMode.REVIEW)&& (this.mode !==  projectMode.VIEWONLY)) {
+            if ((this.libProjectService?.projectData?.stage == resourceStatus.REVIEW || this.mode === solutionModes.REVIEWER_VIEW || this.mode === solutionModes.REVIEW || this.mode === solutionModes.REQUEST_FOR_EDIT || this.mode === solutionModes.CREATOR_VIEW || this.mode === solutionModes.META_REQUEST_FOR_EDIT || this.mode === solutionModes.META_REVIEW)&& (this.mode !==  solutionModes.VIEWONLY)) {
               this.getCommentConfigs()
             }
             })
           }
 
-          if (params.mode === projectMode.EDIT || params.mode === projectMode.REQUEST_FOR_EDIT) {
+          if (params.mode === solutionModes.EDIT || params.mode === solutionModes.REQUEST_FOR_EDIT) {
             this.subscription.add(
             this.libProjectService.isProjectSave.subscribe((isProjectSave:boolean) => {
               if(isProjectSave && this.router.url.includes('sub-tasks')) {
@@ -106,15 +136,16 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy{
             this.libProjectService.isSendForReviewValidation.subscribe(
               (reviewValidation: boolean) => {
                 if(reviewValidation) {
-                    this.myForm.markAllAsTouched()
+                    this.subtask.markAllAsTouched()
                     this.libProjectService.formMeta.formValidation.subTasks =  this.subtasks?.status? this.subtasks?.status: "INVALID"
                     this.libProjectService.triggerSendForReview();
                 }
               }
             )
           );
+          // this.libProjectService.formMeta.formValidation.subTasks =  this.subtasks?.status? this.subtasks?.status: "INVALID"
           }
-          if (params.mode === projectMode.VIEWONLY || params.mode === projectMode.REVIEW || params.mode === projectMode.REVIEWER_VIEW || this.mode === projectMode.CREATOR_VIEW) {
+          if (params.mode === solutionModes.VIEWONLY || params.mode === solutionModes.REVIEW || params.mode === solutionModes.REVIEWER_VIEW || this.mode === solutionModes.CREATOR_VIEW || this.mode === solutionModes.COPY_EDIT || params.mode === solutionModes.META_EDIT || this.mode === solutionModes.META_REQUEST_FOR_EDIT || this.mode === solutionModes.META_REVIEW) {
             this.viewOnly = true;
           }
         }else{
@@ -123,32 +154,109 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy{
 
       })
     );
+    this.subscription.add(
+      this.subtask.valueChanges.subscribe(changes => {
+        this.libProjectService.isFormDirty = true;
+      })
+    )
+
+    this.subscription.add(
+      this.libProjectService.projectApiErrors.subscribe(
+        (errors: any) => {
+          for (let index = 0; index < errors.length; index++) {
+            if(errors[index].parsedLocation.children?.name == "children"){
+              // this.libProjectService.formMeta.formValidation.subTasks = "INVALID"
+               this.taskData[errors[index].parsedLocation.index].subTasks.get('subtasks').controls[errors[index].parsedLocation.children.index].setErrors({ pattern: errors[index].msg })
+            }
+          }
+
+        }
+      )
+    );
+
+    // save resource of program
+    this.subscription.add(
+      this.libProjectService.isProgramResourceSave.subscribe(
+        (isProgramResourceSave: boolean) => {
+          if (isProgramResourceSave) {
+             this.libProjectService.programData.resources = this.libProjectService.programData.resources.map((resource:any) =>
+              resource.id === this.libProjectService.projectData.id ? { ...this.libProjectService.projectData } : resource
+            );
+            this.libProjectService.updateProgramData(this.libProjectService.programData).subscribe((res:any)=>{
+              this.toastService.openSnackBar({
+                message: 'CHANGES_SAVED_SUCCESSFULLY',
+                class: 'success',
+              });
+              this.libProjectService.saveProgramResourceFunc(false)
+              this.router.navigate([PROGRAM_RESOURCES],{ queryParams: { parent: this.route.snapshot.queryParamMap.get('topLevelParent') ? this.route.snapshot.queryParamMap.get('topLevelParent'):'draft', programId: this.route.snapshot.queryParamMap.get('programId'), mode: this.route.snapshot.queryParamMap.get('parentMode') ? this.route.snapshot.queryParamMap.get('parentMode'): solutionModes.EDIT }});
+            })
+            }
+          }
+      )
+    );
+
+    this.subscription.add(  // set a language
+      this.utilService.isLanguageChanges.subscribe(
+        (language: boolean) => {
+          if (language) {
+            this.language = language
+          }
+        }
+      )
+    );
+  }
+
+  ngAfterViewChecked() {
+    if((this.mode == solutionModes.EDIT || this.mode === solutionModes.REQUEST_FOR_EDIT) && this.projectId && this.subtask.pristine && this.libProjectService.tabValidation.subTasks == "INVALID" && this.libProjectService.formMeta.formValidation.subTasks == "INVALID") {
+      this.subscription.add(
+        this.libProjectService.projectApiErrors.subscribe(
+          (errors: any) => {
+            if(errors.length > 0) {
+              for (let index = 0; index < errors.length; index++) {
+                if(errors[index].parsedLocation.children?.name == "children"){
+                  // this.libProjectService.formMeta.formValidation.subTasks = "INVALID"
+                   this.taskData[errors[index].parsedLocation.index].subTasks.get('subtasks').controls[errors[index].parsedLocation.children.index].setErrors({ pattern: errors[index].msg })
+                }
+              }
+            }
+          }
+        )
+      );
+    }
   }
 
   get subtasks() {
     return this.subtask.get('subtasks') as FormArray;
   }
 
+  getButtonStates = (task: any) => {
+    const disableAll = !task?.name?.length || task?.solution_details?.name;
+    const disableObservation = !!(task?.learning_resources?.length || task?.resources?.length || task?.children?.length);
+
+    return [
+      { "label": "ADD_OBSERVATION", "disable": disableAll || disableObservation },
+      { "label": "ADD_LEARNING_RESOURCE", "disable": disableAll },
+      { "label": "ADD_SUBTASKS", "disable": disableAll }
+    ];
+  };
+
   createSubTaskForm() {
-    const getButtonStates = (taskDescriptionLength: number) => {
-        return taskDescriptionLength
-            ? [{"label": "ADD_OBSERVATION", "disable": true}, {"label": "ADD_LEARNING_RESOURCE", "disable": false}, {"label": "ADD_SUBTASKS", "disable": false}]
-            : [{"label": "ADD_OBSERVATION", "disable": true}, {"label": "ADD_LEARNING_RESOURCE", "disable": true}, {"label": "ADD_SUBTASKS", "disable": true}];
-    };
 
     const createTaskObject = (task?: any) => {
        let subtask =task?.children  ?  task.children.map((child: any) => this.fb.control(child.name)):[]
         return {
-            buttons: task ? getButtonStates(task.name?.length) : [{"label": "ADD_OBSERVATION", "disable": true}, {"label": "ADD_LEARNING_RESOURCE", "disable": true}, {"label": "ADD_SUBTASKS", "disable": true}],
+            buttons: task ? this.getButtonStates(task) : [{"label": "ADD_OBSERVATION", "disable": true}, {"label": "ADD_LEARNING_RESOURCE", "disable": true}, {"label": "ADD_SUBTASKS", "disable": true}],
+            name: task?.name,
             subTasks: this.fb.group({
               subtasks: this.fb.array(task?.children?.length > 0 ? subtask : [])
             }),
              resources : task?.learning_resources?.length > 0 ? task.learning_resources : [],
-             children: task?.children ? task.children : []
+             children: task?.children ? task.children : [],
+             solution_details: task?.solution_details ? task?.solution_details : {}
         };
     };
     if (this.libProjectService.projectData?.tasks?.length > 0) {
-      if(this.mode === projectMode.EDIT || this.mode === projectMode.REQUEST_FOR_EDIT){
+      if(this.mode === solutionModes.EDIT || this.mode === solutionModes.REQUEST_FOR_EDIT){
         if (this.libProjectService?.projectData.tasks){
           this.libProjectService?.projectData.tasks.forEach((task: any) => {
               this.taskData.push(createTaskObject(task));
@@ -173,6 +281,26 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy{
   onAction(button : string, taskIndex: number) {
       switch (button) {
         case 'ADD_OBSERVATION':
+          const dialogObservation = this.dialog.open(DialogModelComponent, {
+            disableClose: true,
+            data: {
+              control: this.observationFormDetails.observationFormDetails,
+              ExistingObservation:this.taskData[taskIndex].solution_details,
+              language:this.language
+            }
+            });
+            const componentInstanceObservation = dialogObservation.componentInstance;
+            componentInstanceObservation.saveLearningResource.subscribe((result: any) => {
+              if (result) {
+                this.taskData[taskIndex].solution_details = {
+                  ...result[0],
+                  min_no_of_submissions_required: this.observationFormDetails.minSubmissionRequired.validators.min,
+                  type: "observation",
+                };
+                this.saveSubtask()
+                this.taskData[taskIndex].buttons = this.getButtonStates(this.taskData[taskIndex])
+              }
+            });
           break;
 
         case 'ADD_LEARNING_RESOURCE':
@@ -180,7 +308,8 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy{
             disableClose: true,
             data: {
               control: this.learningResources,
-              ExistingResources:this.taskData[taskIndex].resources
+              ExistingResources:this.taskData[taskIndex].resources,
+              language:this.language
             }
             });
 
@@ -189,6 +318,7 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy{
               if (result) {
                 this.taskData[taskIndex].resources = this.taskData[taskIndex].resources.concat(result) // Save resources to the specific task
                 this.saveSubtask()
+                this.taskData[taskIndex].buttons = this.getButtonStates(this.taskData[taskIndex])
               }
             });
           break;
@@ -203,26 +333,43 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy{
   }
 
   addSubTask(taskIndex: number) {
-    const control = <FormArray>this.taskData[taskIndex].subTasks.get('subtasks');
-    control.push(this.fb.control(''));
+    <FormArray>this.taskData[taskIndex].subTasks.get('subtasks').push(this.fb.control(''));
+    this.taskData[taskIndex].children.push(this.fb.control(''));
+    this.taskData[taskIndex].buttons = this.getButtonStates(this.taskData[taskIndex])
   }
 
   onDeleteSubtask(taskIndex: number, subTaskIndex: number) {
-    const control = <FormArray>this.taskData[taskIndex].subTasks.get('subtasks');
-    control.removeAt(subTaskIndex);
+    this.libProjectService.validateAndHighlightErrors({error: [...this.libProjectService.reviewErrors.filter((obj:any) => !obj.location.includes(`tasks[${taskIndex}].children[${subTaskIndex}]`))]});
+    <FormArray>this.taskData[taskIndex].subTasks.get('subtasks').removeAt(subTaskIndex);
+    this.taskData[taskIndex].children.splice(subTaskIndex, 1);
+    this.taskData[taskIndex].buttons = this.getButtonStates(this.taskData[taskIndex])
+    if(this.libProjectService.reviewErrors.length > 0 && this.libProjectService.reviewErrors.find((element:any) => element.location.includes('tasks') && element.location.includes('children'))) {
+      this.libProjectService.tabValidation.subTasks = "INVALID"
+    }
+    else {
+      this.libProjectService.tabValidation.subTasks = "VALID"
+    }
   }
 
   deleteResource(taskIndex: number, resourceIndex: number) {
     this.taskData[taskIndex].resources.splice(resourceIndex, 1);
+    this.saveSubtask()
+    this.taskData[taskIndex].buttons = this.getButtonStates(this.taskData[taskIndex])
   }
-  onSubtasks(form: FormGroup, taskIndex: number) {}
+
+  deleteObservation(taskIndex: number){
+    this.taskData[taskIndex].solution_details={}
+    this.saveSubtask()
+    this.taskData[taskIndex].buttons = this.getButtonStates(this.taskData[taskIndex])
+  }
+
 
   startAutoSaving() {
-    this.subscription.add(
-      this.libProjectService
-      .startAutoSave(this.projectId)
-      .subscribe((data) => console.log(data))
-    )
+      this.subscription.add(
+        this.libProjectService
+        .startAutoSave(this.projectId, this.mode)
+        .subscribe((data) => {this.libProjectService.isFormDirty = false})
+      )
   }
 
   addSubtaskData(){
@@ -230,13 +377,13 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy{
       for (let i = 0; i < this.projectData.tasks.length; i++) {
         let subtasks:any = []  // Move subtasks initialization here
         this.projectData.tasks[i]['learning_resources'] = this.taskData[i]?.resources,
-        this.projectData.tasks[i].type = this.taskData[i]?.resources.length ? "content" : "simple";
+        this.projectData.tasks[i].type = this.taskData[i]?.solution_details.name ? "observation" : (this.taskData[i]?.resources.length ? "content" : "simple");
         for (let j = 0; j < this.taskData[i]?.subTasks.value.subtasks.length; j++) {
           subtasks.push(
             {
               "id": this.taskData[i]?.children?.[j]?.id ? this.taskData[i].children[j].id : uuidv4(),
               "name": this.taskData[i]?.subTasks.value.subtasks[j],
-              "type": this.taskData[i]?.resources.length ? "content" : "simple",
+              "type": this.taskData[i]?.solution_details.name ? "observation" : (this.taskData[i]?.resources.length ? "content" : "simple"),
               "parent_id": this.projectData?.tasks[i].id,
               "sequence_no": j + 1,
               "is_mandatory": this.projectData.tasks[i].is_mandatory,
@@ -245,6 +392,7 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy{
           )
         }
         this.projectData.tasks[i]['children'] = subtasks;
+        this.projectData.tasks[i]['solution_details'] = this.taskData[i]?.solution_details;
       }
     }
   }
@@ -256,7 +404,7 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy{
   }
 
   ngOnDestroy(){
-    if((this.mode === projectMode.EDIT || this.mode === projectMode.REQUEST_FOR_EDIT) && this.libProjectService.projectData.id){
+    if((this.mode === solutionModes.EDIT || this.mode === solutionModes.REQUEST_FOR_EDIT) && this.libProjectService.projectData.id && this.utilService.saveResources){
      this.saveSubtask();
       if (this.autoSaveSubscription) {
         this.autoSaveSubscription.unsubscribe();
@@ -267,6 +415,7 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy{
   }
 
   saveSubtask(){
+    this.libProjectService.isFormDirty = true;
     this.addSubtaskData();
     this.libProjectService.setProjectData({'tasks': this.projectData.tasks});
   }
@@ -278,17 +427,48 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy{
   getCommentConfigs() {
     this.subscription.add(
       this.route.data.subscribe((data: any) => {
-        this.utilService.getCommentList(this.projectId).subscribe((commentListRes: any) => {
+        this.utilService.getCommentList(this.projectId ? this.projectId : this.ProgramResourceId).subscribe((commentListRes: any) => {
           const comments = commentListRes.result?.comments || [];
           const filteredComments = this.utilService.filterCommentByContext(comments, data.page);
 
           this.commentsList = this.commentsList.concat(filteredComments);
           this.commentPayload = data;
-          this.projectInReview = this.mode === projectMode.REVIEW || this.mode === projectMode.REQUEST_FOR_EDIT ||  this.mode === projectMode.REVIEWER_VIEW || this.mode === projectMode.CREATOR_VIEW ;
+          this.projectInReview = this.mode === solutionModes.REVIEW || this.mode === solutionModes.REQUEST_FOR_EDIT ||  this.mode === solutionModes.REVIEWER_VIEW || this.mode === solutionModes.CREATOR_VIEW || this.mode === solutionModes.META_REVIEW ;
           this.libProjectService.checkValidationForRequestChanges(comments);
         });
       })
     );
   }
 
+
+  savingSubtask(taskIndex:any,j:any){
+    this.libProjectService.removeItemFromAPIErrors('tasks['+taskIndex+"]."+"children["+j+']')
+    this.saveSubtask();
+    if(this.libProjectService.reviewErrors.length > 0 && this.libProjectService.reviewErrors.find((element:any) => element.location.includes('tasks') && element.location.includes('children'))) {
+      this.libProjectService.tabValidation.subTasks = "INVALID"
+    }
+    else {
+      this.libProjectService.tabValidation.subTasks = "VALID"
+    }
+    this.taskData[taskIndex].children[j] = this.taskData[taskIndex]?.subTasks.value.subtasks[j]
+    this.taskData[taskIndex].buttons = this.getButtonStates(this.taskData[taskIndex])
+  }
+
+  addMinSubmissionsRequired(event:any,taskIndex:any){
+    let inputValue = parseInt(event.target.value, 10); // Convert the input value to a number
+    if (inputValue < this.observationFormDetails.minSubmissionRequired.validators.min) {
+      inputValue = this.observationFormDetails.minSubmissionRequired.validators.min;
+    } else if (inputValue > this.observationFormDetails.minSubmissionRequired.validators.max ) {
+      inputValue = this.observationFormDetails.minSubmissionRequired.validators.max;
+    }
+    event.target.value = inputValue;
+    this.taskData[taskIndex].solution_details.min_no_of_submissions_required = inputValue;
+    this.saveSubtask()
+  }
+
+  openResourceLink(url:any){
+    if(this.allowOpenLinks){
+      window.open(url, '_blank');
+    }
+  }
 }

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { HeaderComponent, SideNavbarComponent, DialogModelComponent } from 'lib-shared-modules';
+import { HeaderComponent, SideNavbarComponent, DialogModelComponent, IndexDbService, UtilService } from 'lib-shared-modules';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -26,7 +26,7 @@ export class AppComponent {
     "title" : "Creation Portal"
   }
 
-  constructor(private translate: TranslateService, private router: Router, private viewportScroller: ViewportScroller) {
+  constructor(private translate: TranslateService, private router: Router, private viewportScroller: ViewportScroller,private dbService: IndexDbService, private utilService: UtilService) {
     this.initializeTranslation();
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
@@ -36,7 +36,10 @@ export class AppComponent {
   }
 
   private initializeTranslation(): void {
-    this.translate.setDefaultLang('en');
+    const storedLanguage = JSON.parse(localStorage.getItem('preferred_language') ?? '{}')?.value ?? 'en';
+    this.translate.setDefaultLang(storedLanguage);
+    this.translate.use(storedLanguage);
+    this.utilService.setNewLanguage(storedLanguage)
   }
 
   onButtonClick(buttonTitle: string) {
@@ -45,4 +48,6 @@ export class AppComponent {
   scrollToTop(): void {
     this.viewportScroller.scrollToPosition([0, 0]);
   }
+
+
 }

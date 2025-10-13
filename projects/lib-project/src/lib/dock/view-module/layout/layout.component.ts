@@ -1,9 +1,11 @@
 import { Component } from '@angular/core';
 import { LibProjectService } from '../../../lib-project.service';
-import { ConfigService, DialogPopupComponent, FormService, PROJECT_DETAILS_PAGE, ReviewModelComponent, SOLUTION_LIST, SUBMITTED_FOR_REVIEW, TASK_DETAILS, ToastService, UtilService,rejectform, LibSharedModulesService } from 'lib-shared-modules';
+import { ConfigService, DialogPopupComponent, FormService, PROJECT_DETAILS_PAGE, SOLUTION_LIST, TASK_DETAILS, ToastService, UtilService,rejectform, LibSharedModulesService , PreviewComponent, PROJECT_DETAILS, solutionModes} from 'lib-shared-modules';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs/internal/Subscription';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'lib-layout',
@@ -16,24 +18,21 @@ export class LayoutComponent {
   selctedCardItem : any;
   headerData:any
   sidenavData:any;
-  tabValidation:any;
   mode:any
+  parent:any
+  programId:string|number = ''
   private subscription: Subscription = new Subscription();
-  constructor(private libProjectService:LibProjectService,private formService:FormService,private route:ActivatedRoute,private router:Router,private dialog:MatDialog, private utilService:UtilService,private toastService:ToastService,private configuration: ConfigService,private sharedService: LibSharedModulesService) {
+  constructor(public libProjectService:LibProjectService,private formService:FormService,private route:ActivatedRoute,private router:Router,private dialog:MatDialog, private utilService:UtilService,private toastService:ToastService,private configuration: ConfigService,private sharedService: LibSharedModulesService) {
     this.subscription.add(
       this.route.queryParams.subscribe((params: any) => {
-        this.mode = params.mode ? params.mode : "edit"
+        this.mode = params.mode ? params.mode : "edit",
+        this.parent = params.parent ? params.parent : "draft"
+        this.programId = params.programId;
      })
     )
   }
   lastReviewed = ""
   ngOnInit(){
-    this.tabValidation={
-      projectDetails: "VALID",
-      tasks:"VALID",
-      subTasks:"VALID",
-      certificates:'VALID'
-    }
     this.setConfig()
     this.getProjectdata()
     this.subscription.add(
@@ -46,6 +45,15 @@ export class LayoutComponent {
         // });
         this.lastReviewed = (this.mode === 'review' || this.mode === 'reviewerView' ) ? this.libProjectService.projectData.last_reviewed_on: "";
         this.headerData = data?.sidenavData.headerData
+        if(this.programId && (this.mode === 'metaReview' || this.mode === 'reviewerView' )) {
+          this.libProjectService.readProgram(this.programId).subscribe((res:any) => {
+            this.lastReviewed = res.result.last_reviewed_on;
+          })
+          this.headerData.buttons.reviewerView.splice(1);
+        }
+        if(this.programId && this.mode === 'creatorView' ) {
+          this.headerData.buttons.creatorView.splice(1);
+        }
       })
     )
     this.utilService.saveComment = true;
@@ -66,7 +74,7 @@ export class LayoutComponent {
       projectData = form?.result?.data?.fields?.controls.find((item:any)=> item.title ===  "PROJECT")
     })
   )
-    this.formService.getFormWithEntities("PROJECT_DETAILS")
+    this.formService.getFormWithEntities(PROJECT_DETAILS)
     .then((result) => {
       this.subscription.add(
       this.formService.getForm(TASK_DETAILS).subscribe((tasksData) => {
@@ -76,14 +84,6 @@ export class LayoutComponent {
         "projectDetails":result.controls,
       });
       this.libProjectService.upDateProjectTitle()
-      // this.route.queryParams.subscribe((params: any) => {
-      //   if (params.projectId) {
-      //       this.libProjectService.readProject(params.projectId).subscribe((res: any) => {
-      //           this.libProjectService.projectData = res.result;
-      //           this.libProjectService.upDateProjectTitle()
-      //         });
-      //       }
-      // })
     })
    )
     })
@@ -94,29 +94,50 @@ export class LayoutComponent {
 
   onButtonClick(buttonTitle: string) {
     switch (buttonTitle) {
-      case "SAVE_CHANGES":
-      case "SAVE_AS_DRAFT":{
-        this.subscription.add(
-          this.sharedService.triggerSaveComment()  // Triggers the save comment action from the comment module
-        )
-        this.libProjectService.saveProjectFunc(true);
+      case 'PREVIEW': {
+        this.utilService.removeEmptyKey(this.libProjectService.projectData).subscribe(
+          (cleanedData) => {
+            const dialogRef = this.dialog.open(PreviewComponent, {
+              width: '23rem',
+              autoFocus: false,
+              disableClose: false,
+              data: {
+                projectData: cleanedData,
+                cssClass: 'max-h-[31.25rem] min-h-[31.25rem]',
+              },
+            });
+          }
+        );
         break;
       }
-      case "SEND_FOR_REVIEW":{
+      case "SAVE_CHANGES":
+      case "SAVE_AS_DRAFT": {
+        if (this.mode === solutionModes.META_EDIT || this.mode === solutionModes.META_REQUEST_FOR_EDIT) {
+          this.libProjectService.saveProgramResourceFunc(true)
+          break;
+        } else {
+          this.subscription.add(
+            this.sharedService.triggerSaveComment()  // Triggers the save comment action from the comment module
+          )
+          this.libProjectService.saveProjectFunc(true);
+          break;
+        }
+      }
+      case "SEND_FOR_REVIEW": {
         this.utilService.saveComment = false
         this.libProjectService.checkSendForReviewValidation(true);
-        this.tabValidation = this.libProjectService.formMeta.formValidation;
+        this.libProjectService.tabValidation = this.libProjectService.formMeta.formValidation;
         break;
       }
-      case "START_REVIEW":{
+      case "START_REVIEW": {
         this.libProjectService.startOrResumeReview()
         break;
       }
-      case "EDIT":{
+      case "EDIT": {
         this.libProjectService.editProject()
         break;
       }
-      case "ACCEPT":{
+      case "ACCEPT": {
         const dialogRef = this.dialog.open(DialogPopupComponent, {
           width: '39.375rem',
           autoFocus: false,
@@ -141,7 +162,7 @@ export class LayoutComponent {
         });
         break;
       }
-      case "REJECT":{
+      case "REJECT": {
         const dialogRef = this.dialog.open(DialogPopupComponent, {
           width: '39.375rem',
           autoFocus: false,
@@ -150,8 +171,8 @@ export class LayoutComponent {
             header: "REJECT_RESOURCES",
             content: "REJECT_RESOURCES_CONTENT",
             cancelButton: "CANCEL",
-            reportContent:true,
-            form:[rejectform],
+            reportContent: true,
+            form: [rejectform],
             exitButton: "REJECT"
           }
         });
@@ -169,7 +190,7 @@ export class LayoutComponent {
         });
         break;
       }
-      case "REQUEST_CHANGES":{
+      case "REQUEST_CHANGES": {
         this.utilService.saveComment = false
         this.subscription.add(
           this.sharedService.triggerSaveComment() //// Triggers the save comment action from the comment module
@@ -186,19 +207,94 @@ export class LayoutComponent {
         )
         break;
       }
+      case "COPY_AND_EDIT": {
+        this.subscription.add(
+          this.libProjectService.copyAndCreateProject().subscribe((res: any) => {
+            this.router.navigate([PROJECT_DETAILS_PAGE], {
+              queryParams: {
+                projectId: res.result.id,
+                mode: solutionModes.EDIT,
+                parent: "draft"
+              },
+            });
+          })
+        )
+        break;
+      }
+      case "LOGOUT": {
+        const dialogRef = this.dialog.open(DialogPopupComponent, {
+          width: '39.375rem',
+          disableClose: true,
+          autoFocus: false,
+          data: {
+            header: 'LOGOUT',
+            content: 'LOGOUT_CONFIRMATION_TEXT',
+            cancelButton: "CANCEL",
+            exitButton: "LOGOUT"
+          },
+        });
+        dialogRef.afterClosed().subscribe((result) => {
+          if (result.data === 'LOGOUT') {
+            this.utilService.saveComment = false;
+            this.utilService.saveResources = false;
+            if(this.mode === solutionModes.EDIT ||this.mode === solutionModes.REQUEST_FOR_EDIT ){
+              this.libProjectService.createOrUpdateProject(this.libProjectService.projectData, this.libProjectService.projectData.id).subscribe((res) => {
+                this.sharedService.logout();
+              })
+            }else{
+              this.sharedService.logout();
+            }
+          }
+        });
+        break;
+      }
       default:
         break;
     }
   }
 
   navChangeEvent(data:any) {
-    console.log(data)
   }
 
   ngOnDestroy() {
+    this.libProjectService.programData = {}
     this.libProjectService.projectData = {}
-    this.libProjectService.setFormMetaData();
     this.libProjectService.resetProjectMetaData();
     this.subscription.unsubscribe();
+    this.libProjectService.tabValidation = {
+      projectDetails: "VALID",
+      tasks:"VALID",
+      subTasks:"VALID",
+      certificates:'VALID'
+    }
+    this.libProjectService.reviewErrors = [];
+    this.libProjectService.setFormMetaData();
   }
+
+  backToParent() {
+    if (this.utilService.saveResources && this.mode != solutionModes.META_REVIEW) {
+      if (this.mode === solutionModes.META_EDIT || this.mode === solutionModes.META_REQUEST_FOR_EDIT) {
+        this.libProjectService.programData.resources = this.libProjectService.programData.resources.map((resource: any) =>
+          resource.id === this.libProjectService.projectData.id ? { ...this.libProjectService.projectData } : resource
+        );
+        this.libProjectService.updateProgramData(this.libProjectService.programData).subscribe((res: any) => {
+          this.sharedService.goBack()
+        })
+      }
+      else if (this.mode === solutionModes.EDIT || this.mode === solutionModes.REQUEST_FOR_EDIT) {
+        if (this.libProjectService.projectData.id) {
+          this.libProjectService.createOrUpdateProject(this.libProjectService.projectData, this.libProjectService.projectData.id).subscribe((res) => {
+            this.sharedService.goBack()
+          })
+        }else{
+          this.sharedService.goBack()
+        }
+      }else{
+        this.sharedService.goBack()
+      }
+    } else {
+      this.sharedService.goBack()
+    }
+  }
+
 }

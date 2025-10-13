@@ -1,0 +1,88 @@
+<form [formGroup]="resourceForm">
+  <div formArrayName="resources" class="form-container">
+    <div *ngFor="let resourceGroup of resourceFields.controls; let i=index" [formGroupName]="i">
+      <mat-card appearance="outlined" class="resource-card">
+        <div>
+          <lib-card [list]="resources[i]" [showActionButton]="true"  [commentVisible]="false" class="mb-3"></lib-card>
+        <div class="flex gap-2 mt-2">
+          <mat-label _ngcontent-ng-c2505383043="" class="ng-tns-c3736059725-23 ng-star-inserted target-criteria">{{"TARGET_CRITERIA" | translate}} *</mat-label>
+          <mat-icon class="info-icon enable-with-pointer-events mt-1" matTooltipClass="info-tooltip" matTooltipPosition="above"
+          [matTooltip]="'RESOURCE_LEVEL_TARGET_INFO' | translate" [matTooltipDisabled]="true" #tooltip1="matTooltip" (click)="showTooltip(tooltip1)"
+          (mouseleave)="hideTooltip(tooltip1)">
+          info
+        </mat-icon>
+        </div>
+        <!-- target criteria list -->
+        <div class="flex flex-col gap-4">
+          <div  *ngFor="let targetItem of resources[i]?.targeting_criteria;let j = index" class="resource-items-container">
+            <section class="resouce-inner-section cursor-pointer">
+              <img src="assets/images/video-icon.png" alt="My Image">&nbsp;
+              <p>{{targetItem?.label}}</p>
+            </section>
+            <div class="cursor-pointer flex flex-row gap-2">
+              <mat-icon (click)="updateResource(i,j,targetItem)" class="cursor-pointer">edit_square</mat-icon>
+              <mat-icon (click)="updateResource(i,j)"class="cursor-pointer" [ngClass]="{'pointer-events-none': viewOnly}">close</mat-icon>
+            </div>
+          </div>
+        </div>
+        <section class="flex mt-4 gap-2" [ngClass]="{'pointer-events-none': viewOnly}">
+          <section>
+            <div class="flex">
+              <mat-form-field appearance="outline" floatLabel="always">
+                <mat-label>{{"START_DATE" | translate}}</mat-label>
+                <input matInput [matDatepicker]="startDate" readonly formControlName="start_date" placeholder="{{ 'START_DATE'| translate}}"
+                  [max]="getMaxDate(i)" [min]="getProgramDate('start_date')"
+                  (dateChange)="setValueToProgram($event,i,'start_date')">
+                <mat-datepicker-toggle matIconSuffix [for]="startDate" [disabled]="viewOnly ||isResourceGrayedOut(i) || isStartDateDisabled(i)"></mat-datepicker-toggle>
+                <mat-datepicker #startDate [disabled]="viewOnly ||isResourceGrayedOut(i) || isStartDateDisabled(i)"></mat-datepicker>
+              </mat-form-field>
+              <mat-icon class="info-icon enable-with-pointer-events" matTooltipClass="info-tooltip" matTooltipPosition="above"
+                [matTooltip]="'INFO_MESSAGE_FOR_RESOURCE_START_DATE' | translate" [matTooltipDisabled]="true" #tooltip2="matTooltip" (click)="showTooltip(tooltip2)"
+                (mouseleave)="hideTooltip(tooltip2)">
+                info
+              </mat-icon>
+            </div>
+            <mat-error *ngIf="resourceGroup.get('start_date')?.touched && resourceGroup.get('start_date')?.hasError('required')">
+              {{"START_DATE_REQUIRED" | translate}}
+            </mat-error>
+            <mat-error *ngIf="resourceGroup.get('start_date')?.touched && resourceGroup.get('start_date')?.hasError('pattern')">
+              {{"RESOURCE_START_DATE_SHOULD_BE_WITHIN_PROGRAM_DATE_RANGE" | translate}}
+            </mat-error>
+          </section>
+          <section>
+            <div class="flex">
+              <mat-form-field appearance="outline" floatLabel="always">
+                <mat-label>{{"END_DATE" | translate}}</mat-label>
+                <input matInput [matDatepicker]="endDate" readonly formControlName="end_date" placeholder="{{'END_DATE' | translate}}"
+                  [min]="getMinDate(i)" [max]="getProgramDate('end_date')" (dateChange)="setValueToProgram($event,i,'end_date')">
+                <mat-datepicker-toggle matIconSuffix [for]="endDate" [disabled]="viewOnly"></mat-datepicker-toggle>
+                <mat-datepicker #endDate [disabled]="viewOnly"></mat-datepicker>
+              </mat-form-field>
+              <mat-icon class="info-icon enable-with-pointer-events" matTooltipClass="info-tooltip" matTooltipPosition="above"
+                [matTooltip]="'INFO_MESSAGE_FOR_RESOURCE_END_DATE' | translate" [matTooltipDisabled]="true" #tooltip3="matTooltip" (click)="showTooltip(tooltip3)"
+                (mouseleave)="hideTooltip(tooltip3)">
+                info
+              </mat-icon>
+            </div>
+            <mat-error *ngIf="resourceGroup.get('end_date')?.touched &&resourceGroup.get('end_date')?.hasError('required')">
+              {{"END_DATE_REQUIRED" | translate}}
+            </mat-error>
+            <mat-error *ngIf="resourceGroup.get('end_date')?.touched && resourceGroup.get('end_date')?.hasError('pattern')">
+              {{"RESOURCE_END_DATE_SHOULD_BE_WITHIN_PROGRAM_DATE_RANGE" | translate}}
+            </mat-error>
+          </section>
+        </section>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+</form>
+@if(resources <= 0){
+  <div  class="top-32 w-full flex flex-col items-center justify-center h-[70%]">
+    {{"NO_RESOURCE_MESSAGE_FOR_RESOURCE_LEVEL_TARGETING" | translate}}
+  </div>
+}
+@if(commentPayload || ResourceInReview) {
+  <lib-comments-box [commentPayload]="commentPayload" [resourceId]="programId" [messages]="commentsList" [mode]="mode"
+      (comment)="saveComment($event)"></lib-comments-box>
+}

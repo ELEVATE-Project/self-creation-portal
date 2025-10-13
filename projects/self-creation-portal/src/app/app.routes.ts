@@ -39,15 +39,27 @@ export const routes: Routes = [
             {
                 path:'up-for-review',
                 component:ResourceHolderComponent
+            },
+            {
+                path:'roll-out',
+                component:ResourceHolderComponent
             }
             // drafts, publish and other resource listings should be added here.
-        ]
+        ],
+        data: { preload: true, delay: 10000 }
     },
     {
         path:"solution",
         component:SolutionsLibHolderComponent,
         canActivate:[AuthGuard],
         loadChildren:() => import('lib-project').then(m => m.ViewModuleModule),
+        data: { preload: true, delay: 15000 }
+    },
+    {
+        path:"roll-out",
+        canActivate:[AuthGuard],
+        loadChildren:() => import('program-with-rollout').then(m => m.ViewModuleModule),
+        data: { preload: true, delay: 15000 }
     },
     { path: '', loadChildren: () => import('authentication_frontend_library').then(m => m.SlRoutingRoutingModule) }
 ];

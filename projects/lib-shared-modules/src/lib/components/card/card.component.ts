@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component,Input,Output,EventEmitter } from '@angular/core';
+import { Component,Input,Output,EventEmitter, OnInit } from '@angular/core';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
@@ -17,18 +17,21 @@ export class CardComponent {
   @Input() list: any;
   @Input() showActionButton: boolean = false;
   @Input() project:any;
+  @Input() commentVisible:boolean = true;
   @Input() activeRole:any;
-  @Output() buttonClickEvent = new EventEmitter<{ label: string, item: any }>();
+  @Input() showDates:any = false;
+  @Output() buttonClickEvent = new EventEmitter<{ button: any, item: any }>();
   @Output() infoClickEvent = new EventEmitter<{item: any}>
-  @Input() showInfoIcon: boolean = false; 
+  @Input() showInfoIcon: boolean = false;
 
   resourceStatus = resourceStatus;
   reviewStatus = reviewStatus;
 
-  constructor() {}
+  constructor() {
+  }
 
-  onButtonClick(label: string, item: any) {
-    this.buttonClickEvent.emit({ label, item });
+  onButtonClick(button: any, item: any) {
+    this.buttonClickEvent.emit({ button, item });
   }
 
   onInfoClick(item: any) {
@@ -36,9 +39,7 @@ export class CardComponent {
   }
 
   formatLabel(type: string): string {
-    return type
-      .replace(/_/g, ' ')         // Replace all underscores with spaces
-      .replace(/^./, (str: string) => str.toUpperCase()); // Capitalize the first letter
+    return type.toUpperCase();  //convert to uppercase
   }
 
 }

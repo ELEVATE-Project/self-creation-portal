@@ -1,0 +1,29 @@
+---
+- hosts: elevate
+  vars:
+    GIT_REF: "ELEVATE-Project/self-creation-portal"
+    gitBranch: "sprint-5"
+    new_version: "1.0.2"
+    github_token: "your_token_here"
+    project_path: /opt/frontend/self-creation-portal
+  tasks:
+    - name: Slurp hosts file
+      slurp:
+        src: "/opt/backend/deployment/.token"
+      register: slurpfile
+    - name: Create GitHub Release Tag
+      uri:
+        url: "https://api.github.com/repos/{{ GIT_REF }}/releases"
+        method: POST
+        headers:
+          Accept: "application/vnd.github+json"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          tag_name: "v{{ new_version }}"
+          target_commitish: "{{ gitBranch }}"
+          name: "v{{ new_version }}"
+          body: "Automated release v{{ new_version }} created by Ansible"
+          draft: false
+          prerelease: false
+        status_code: 201

@@ -1,0 +1,24 @@
+@import "../../../../../../self-creation-portal/src/styles.scss";
+.overflow-ellipsis{
+    width: 100%;
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
+    white-space: pre-line;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+}
+
+.active {
+    background: $cardLightBlue;
+    border-top: 1px solid $borderGray;
+    border-bottom: 1px solid $borderGray;
+}
+
+.mdc-list {
+    margin: 0;
+    padding:0 0 5.625rem 0 !important; /* Override default padding */
+    list-style-type: none;
+}
+
