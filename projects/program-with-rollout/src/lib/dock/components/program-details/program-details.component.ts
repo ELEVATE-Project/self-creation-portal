@@ -42,6 +42,7 @@ export class ProgramDetailsComponent {
 
   ngOnInit() {
     this.getFormWithEntitiesAndMap()
+    console.log(this.programWithRolloutService.targetingConfig)
     this.subscription.add(
       this.programWithRolloutService.isProgramSave.subscribe(
         (isProgramSave: boolean) => {
@@ -266,7 +267,7 @@ export class ProgramDetailsComponent {
           const startDateField = formControls.find((field:any) => field.name === 'start_date');
 
           if (startDateField && startDateField.value) {
-            this.programWithRolloutService.programData.start_date = (typeof(this.programWithRolloutService.programData?.start_date) === 'object') ? new Date(this.programWithRolloutService.programData?.start_date).toISOString(): this.programWithRolloutService.programData?.start_date 
+            this.programWithRolloutService.programData.start_date = (typeof(this.programWithRolloutService.programData?.start_date) === 'object') ? new Date(this.programWithRolloutService.programData?.start_date).toISOString(): this.programWithRolloutService.programData?.start_date
             this.programWithRolloutService.programData.metaData.publishedStartDate  = this.programWithRolloutService.formMeta.publishedStartDate ? (typeof(this.programWithRolloutService.formMeta.publishedStartDate ) === 'object') ? new Date(this.programWithRolloutService.formMeta.publishedStartDate ).toISOString():this.programWithRolloutService.formMeta.publishedStartDate : (typeof(this.programWithRolloutService.programData.metaData.publishedStartDate ) === 'object') ? new Date(this.programWithRolloutService.programData.metaData.publishedStartDate ).toISOString():this.programWithRolloutService.programData.metaData.publishedStartDate ;
             const startDate = this.programWithRolloutService.programData.metaData.publishedStartDate  ? this.programWithRolloutService.programData.metaData.publishedStartDate  : this.programWithRolloutService.programData.start_date
             if (currentFormatedDate >= startDate) {
@@ -328,7 +329,8 @@ export class ProgramDetailsComponent {
             data:{
               data: null,
               targeting_criteria:this.programWithRolloutService.programData.targeting_criteria,
-              language:this.language
+              language:this.language,
+              config:this.programWithRolloutService.targetingConfig
             },
           });
 
@@ -372,7 +374,8 @@ export class ProgramDetailsComponent {
             data:{
               data: {...control.item,...{readOnly:false,mode:this.mode,page:'program-details'}},
               targeting_criteria:this.programWithRolloutService.programData.targeting_criteria,
-              language: this.language
+              language: this.language,
+              config:this.programWithRolloutService.targetingConfig
             },
           });
 
