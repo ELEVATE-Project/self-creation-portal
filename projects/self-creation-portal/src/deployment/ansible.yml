@@ -36,9 +36,6 @@
       register: pm2
     - name: Remove dist folder
       shell: rm -rf dist
-    - name: Delete old pm2 process
-      command: pm2 delete self-creation-portal-frontend
-      ignore_errors: yes
     - name: Build angular app
       shell: cd {{project_path}} && ng build lib-shared-modules && ng build lib-project && ng build program-with-rollout && ng build self-creation-portal --configuration production
     - name: Start pm2
