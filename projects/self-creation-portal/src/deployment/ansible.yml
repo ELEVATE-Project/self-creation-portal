@@ -37,11 +37,11 @@
     - name: Remove dist folder
       shell: rm -rf dist
     - name: Build shared modules
-      shell: cd {{project_path}} && ng build lib-shared-modules
+      shell: cd {{project_path}} && ng build lib-shared-modules --configuration production
     - name: Build lib project
-      shell: ng build lib-project
+      shell: ng build lib-project --configuration production
     - name: Build roll-out
-      shell: ng build program-with-rollout
+      shell: ng build program-with-rollout --configuration production
     - name: Build angular app
       shell: ng build self-creation-portal --configuration production --base-href /scp/
     - name: Start pm2
