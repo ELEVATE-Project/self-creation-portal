@@ -666,7 +666,7 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
 
   setQRForPreview() {
     this.subscription.add(
-      this.http.get('assets/images/qr-scan.png', { responseType: 'blob' }).subscribe((blob:any) => {
+      this.http.get('./assets/images/qr-scan.png', { responseType: 'blob' }).subscribe((blob:any) => {
         console.log(blob)
         const reader = new FileReader();
         reader.readAsDataURL(blob);
