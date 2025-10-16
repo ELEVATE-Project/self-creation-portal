@@ -160,7 +160,12 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               "projects/self-creation-portal/src/favicon.ico",
-              "projects/self-creation-portal/src/assets"
+              "projects/self-creation-portal/src/assets",
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "assets"
+              }
             ],
             "styles": [
               "projects/self-creation-portal/src/styles.scss",
