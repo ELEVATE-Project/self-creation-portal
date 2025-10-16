@@ -21,7 +21,7 @@ app.use('/scp',express.static(buildPath));
 
 // Fallback to index.html for SPA routing
 app.get('/scp/*', (req, res) => {
-  res.sendFile(path.join(buildPath, 'index.html'));
+  res.sendFile(path.join(buildPath+"/dist/self-creation-portal/browser/", 'index.html'));
 });
 
 app.listen(port, () => {
