@@ -55,14 +55,14 @@ export class AppMainViewComponent {
             exitButton: "LOGOUT"
           },
         });
-     
+
          dialogRef.afterClosed().subscribe((result) => {
             if(result.data === 'LOGOUT'){
               this.sharedService.logout();
             }
          });
-      }  
-    }  
+      }
+    }
   }
 
   backToParent(event:boolean) {

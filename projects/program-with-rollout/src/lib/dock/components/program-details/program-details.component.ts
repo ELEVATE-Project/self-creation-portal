@@ -42,6 +42,7 @@ export class ProgramDetailsComponent {
 
   ngOnInit() {
     this.getFormWithEntitiesAndMap()
+    console.log(this.programWithRolloutService.targetingConfig)
     this.subscription.add(
       this.programWithRolloutService.isProgramSave.subscribe(
         (isProgramSave: boolean) => {

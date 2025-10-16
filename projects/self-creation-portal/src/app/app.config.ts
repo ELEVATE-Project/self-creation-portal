@@ -37,7 +37,7 @@ export const appConfig: ApplicationConfig = {
 //   return http.get('assets/library.config.json');
 // }
 export function configFactory(http: HttpClient): any {
-  return http.get("assets/library.config.json").pipe(switchMap((data:any)=>{
+  return http.get("./assets/library.config.json").pipe(switchMap((data:any)=>{
     data.baseUrl = environment.baseURL
     return of(data)
   }))

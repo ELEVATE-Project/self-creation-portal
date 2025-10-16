@@ -39,7 +39,7 @@
                         @if(list.is_comments && list.is_comments === true && commentVisible){
                             <div class="chip-container item-center text-center bg-chipComment text-black">
                                 <div class="flex justify-center items-center">
-                                    <img src="assets/icons/comments-icon.png" alt="" class="mr-2">
+                                    <img src="./assets/icons/comments-icon.png" alt="" class="mr-2">
                                     {{resourceStatus.COMMENTS | translate}}
                                 </div>
                             </div>
@@ -47,7 +47,7 @@
                         @if(((list.status === resourceStatus.IN_PROGRESS) || (list.review_status === reviewStatus.INPROGRESS)) && (list.review_status !== reviewStatus.REQUEST_FOR_CHANGES) && (list.review_status !== reviewStatus.CHANGES_UPDATED)){
                             <div class="chip-container  item-center text-center bg-chipInprogress text-black">
                                 <div class="inline-flex items-center justify-center">
-                                    <img src="assets/icons/inprogress-icon.png" alt="" class="mr-2">
+                                    <img src="./assets/icons/inprogress-icon.png" alt="" class="mr-2">
                                    {{(reviewStatus.INPROGRESS || list.review_status) | translate}}
                                 </div>
                             </div>
