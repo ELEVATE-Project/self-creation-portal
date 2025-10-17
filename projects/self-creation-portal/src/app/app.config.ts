@@ -17,9 +17,9 @@ import { switchMap, of } from 'rxjs';
 import { DBConfig, NgxIndexedDBModule } from 'ngx-indexed-db';
 import { TimedPreloadingStrategy } from 'lib-shared-modules';
 // Create a loader for translation files
-export function HttpLoaderFactory(http: HttpClient) {
-  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
-}
+// export function HttpLoaderFactory(http: HttpClient) {
+//   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
+// }
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -37,7 +37,7 @@ export const appConfig: ApplicationConfig = {
 //   return http.get('assets/library.config.json');
 // }
 export function configFactory(http: HttpClient): any {
-  return http.get("./assets/library.config.json").pipe(switchMap((data:any)=>{
+  return http.get("assets/library.config.json").pipe(switchMap((data:any)=>{
     data.baseUrl = environment.baseURL
     return of(data)
   }))
