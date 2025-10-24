@@ -21,7 +21,7 @@ import { MatDialog } from '@angular/material/dialog';
 })
 export class AppMainViewComponent {
 
-  backButton : boolean = false;
+  backButton : boolean = true;
   headerData : any = {
     title:"WORKSPACE"
   };
