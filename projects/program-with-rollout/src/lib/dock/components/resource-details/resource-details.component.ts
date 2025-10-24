@@ -369,7 +369,8 @@ export class ResourceDetailsComponent implements OnInit, OnDestroy {
           data:{
             data: null,
             targeting_criteria:this.programWithRolloutService.rollOutDetails.targeting_criteria,
-            language:this.language
+            language:this.language,
+            config:this.programWithRolloutService.targetingConfig
           },
         });
 
@@ -410,7 +411,8 @@ export class ResourceDetailsComponent implements OnInit, OnDestroy {
           data:{
             data: control.item,
             targeting_criteria:this.programWithRolloutService.rollOutDetails.targeting_criteria,
-            language:this.language
+            language:this.language,
+            config:this.programWithRolloutService.targetingConfig
           },
         });
 
