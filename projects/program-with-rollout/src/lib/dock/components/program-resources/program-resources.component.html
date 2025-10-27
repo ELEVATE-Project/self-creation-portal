@@ -19,9 +19,13 @@
 <div  class="px-10 py-4 w-[100%]">
   <p>{{"ADDED_RESOURCES" | translate}} ({{resourceCount}})</p>
 </div>
-<div class="px-10 py-4 w-[100%]" >
-  @for(list of resources; track list){
+<div class="px-10 py-1 w-[100%]" >
+  @for(list of resources; let i = $index; track list){
     <div class="pb-3">
+      <div class="arrow-container pb-1">
+        <mat-icon (click)="moveUp(i)" class="cursor-pointer" [ngClass]="{'disable-fields': i<1 || viewOnly}">arrow_upward</mat-icon>
+        <mat-icon (click)="moveDown(i)" class="cursor-pointer" [ngClass]="{'disable-fields': i>=resources.length-1 || viewOnly}">arrow_downward</mat-icon>
+      </div>
       <lib-card [list]="list" [showActionButton]="true"  [commentVisible]="(programWithRolloutService.programData.status === 'PUBLISHED' || mode === 'reviewerView' || mode === 'review') ? false : true" (buttonClickEvent)="statusButtonClick($event)"></lib-card>
     </div>
     }

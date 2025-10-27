@@ -13,6 +13,16 @@
     height: 220px;
     cursor: pointer;
 }
+
+.disable-fields{
+    pointer-events: none;
+    color: $buttonDisable;
+  }
+
+.arrow-container {
+    display: flex;
+    justify-content: end;
+}
 .img-content{
    height: 100%;
    display: flex;

@@ -12,11 +12,12 @@ import { ProgramWithRolloutService } from '../../../program-with-rollout.service
 import { map, Observable, Subscription } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'lib-program-resources',
   standalone: true,
-  imports: [CommonModule,MatSidenavModule, MatButtonModule, MatIconModule, MatToolbarModule, MatListModule, MatCardModule,TranslateModule,ArrayContainsAllDirective, CardComponent,CommentsBoxComponent],
+  imports: [CommonModule,MatSidenavModule, MatButtonModule, MatIconModule, MatToolbarModule, MatListModule, MatCardModule,TranslateModule,ArrayContainsAllDirective, CardComponent,CommentsBoxComponent, MatTooltipModule],
   templateUrl: './program-resources.component.html',
   styleUrl: './program-resources.component.scss',
 })
@@ -453,6 +454,16 @@ getsolutionList() {
         },
       });
     }
+  }
+
+  moveUp(index: number) {
+    [this.resources[index - 1], this.resources[index]] = [this.resources[index], this.resources[index - 1]];
+    this.programWithRolloutService.programData.resources = this.resources
+  }
+
+  moveDown(index:number) {
+    [this.resources[index], this.resources[index + 1]] = [this.resources[index + 1], this.resources[index]];
+    this.programWithRolloutService.programData.resources = this.resources
   }
 
   //Check for ISO date format
