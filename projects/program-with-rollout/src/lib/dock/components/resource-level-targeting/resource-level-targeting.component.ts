@@ -496,10 +496,11 @@ export class ResourceLevelTargetingComponent implements OnInit {
         autoFocus: false,
         data: {
           data:{...targeItem,...{readOnly:true,mode:this.mode, page:'resource-level-targeting'}},
-          targeting_criteria:      this.programWithRolloutService.programData.resources[
+          targeting_criteria:this.programWithRolloutService.programData.resources[
             resourceIndex
           ].targeting_criteria,
-          language:this.language
+          language:this.language,
+          config:this.programWithRolloutService.targetingConfig
         },
       });
 

@@ -65,7 +65,7 @@ export class CommentsBoxComponent implements OnInit, OnDestroy {
    }
 
   ngOnInit() {
-    this.userId = localStorage.getItem('id');
+    this.userId = localStorage.getItem('userId');
     this.checkCommentIsDraftAndResolvable();
     this.subscription.add(
       this.sharedService. getSaveCommentObservable().subscribe(() => { // When the `getSaveCommentObservable()` observable emits, it will call `triggerSaveComment()`to handle the save operation.
