@@ -66,7 +66,7 @@ export class AppMainViewComponent {
   }
 
   backToParent(event:boolean) {
-    window.open(environment.parentURL,"_self")
+    window.open(window.location.origin,"_self")
   }
 
   getnavData(){
