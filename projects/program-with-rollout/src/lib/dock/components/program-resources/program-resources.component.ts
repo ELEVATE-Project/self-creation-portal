@@ -389,28 +389,40 @@ getsolutionList() {
         }
       case 'COPY_RESOURCE':
         if (item.type === 'project') {
-          if(item.link !== null) {
-            const dialogRef = this.dialog.open(DialogPopupComponent, {
-              width: '39.375rem',
-              height:'auto',
-              data: {
-                header: "COPY_RESOURCE",
-                link: item.link,
-                copyButton:"COPY_LINK"
-              }
-            });
-
-            dialogRef.afterClosed().subscribe(result => {
-              return result ? true : false;
-            });
-          }
-          else {
-            let data = {
-              "message":'NO_LINK_AVAILABLE_TO_COPY',
-              "class":"error",
+          this.programWithRolloutService.getResourceLink(item.id).subscribe((res:any)=> {
+            if(res.result.deepLinks.length > 0) {
+              this.utilService.copyTextToClipboard(res.result.deepLinks)
             }
-            this.toast.openSnackBar(data)
-          }
+            else {
+              let data = {
+                "message":'NO_LINK_AVAILABLE_TO_COPY',
+                "class":"error",
+              }
+              this.toast.openSnackBar(data)
+            }
+          })
+          // if(item.link !== null) {
+          //   const dialogRef = this.dialog.open(DialogPopupComponent, {
+          //     width: '39.375rem',
+          //     height:'auto',
+          //     data: {
+          //       header: "COPY_RESOURCE",
+          //       link: item.link,
+          //       copyButton:"COPY_LINK"
+          //     }
+          //   });
+
+          //   dialogRef.afterClosed().subscribe(result => {
+          //     return result ? true : false;
+          //   });
+          // }
+          // else {
+          //   let data = {
+          //     "message":'NO_LINK_AVAILABLE_TO_COPY',
+          //     "class":"error",
+          //   }
+          //   this.toast.openSnackBar(data)
+          // }
           break;
         } else {
           break;
@@ -458,11 +470,18 @@ getsolutionList() {
 
   moveUp(index: number) {
     [this.resources[index - 1], this.resources[index]] = [this.resources[index], this.resources[index - 1]];
-    this.programWithRolloutService.programData.resources = this.resources
+    this.updateOrderIdOfResources();
   }
 
   moveDown(index:number) {
     [this.resources[index], this.resources[index + 1]] = [this.resources[index + 1], this.resources[index]];
+    this.updateOrderIdOfResources();
+  }
+
+  updateOrderIdOfResources() {
+    this.resources.forEach((resource:any,index:number) => {
+      resource.order = index + 1;
+    })
     this.programWithRolloutService.programData.resources = this.resources
   }
 

@@ -333,6 +333,12 @@ export class ProgramWithRolloutService {
     );
   }
 
+  getResourceLink(solution_id: number | string,type:string = 'project') {
+    return this.httpService.get(
+      this.Configuration.urlConFig.PROGRAM_URLS.GET_RESOURCE_URL + `?solution_id=${solution_id}&solution_type=${type}`
+    );
+  }
+
   removeResourcesFromPrograms(resourceId: any) {
     return this.httpService.post(
       this.Configuration.urlConFig.PROGRAM_URLS.REMOVE_RESOURCE +
