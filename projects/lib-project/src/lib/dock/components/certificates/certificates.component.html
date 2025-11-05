@@ -308,7 +308,7 @@
                                 }
                             </div>
                             <mat-slider min="1" [max]="maximunNumberOfEvedence" step="1" showTickMarks discrete style="width: 100%;"  [disabled]="!checkCombinedTaskEvidenceIsAvailable()" [style.pointer-events]="viewOnly ? 'none' : 'auto'">
-                                <input matSliderThumb matInput formControlName="evidenceRequired" #range (change)="setProjectEvidenceCriteriaValue(range.value)" [style.pointer-events]="viewOnly ? 'none' : 'auto'">
+                                <input matSliderThumb matInput formControlName="evidenceRequiredCombined" #range (change)="setTaskEvidenceCombinedCriteriaValue(range.value)" [style.pointer-events]="viewOnly ? 'none' : 'auto'">
                             </mat-slider>
                         }
                     </div>

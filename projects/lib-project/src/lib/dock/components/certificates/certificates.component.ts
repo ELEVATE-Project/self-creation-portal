@@ -432,6 +432,13 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
     }
   }
 
+  setTaskEvidenceCombinedCriteriaValue(value:any) {
+    const keys = Object.keys(this.libProjectService.projectData.certificate.criteria.conditions.C3.conditions);
+    keys.map((taskKey:string) => {
+      this.libProjectService.projectData.certificate.criteria.conditions.C3.conditions[taskKey].value = value;
+    })
+  }
+
   addTasktoCertificatePage(projectData:any) {
     this.tasks = projectData.tasks.filter((task:any) => {
       if(task?.evidence_details?.min_no_of_evidences) {
@@ -579,6 +586,7 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
         ],
       ],
       evidenceRequired: ['1', Validators.required],
+      evidenceRequiredCombined: ['1', Validators.required],
       enableProjectEvidence: [],
       attachLogo: this.fb.array([]),
       attachSign: this.fb.array([]),

@@ -391,7 +391,22 @@ getsolutionList() {
         if (item.type === 'project') {
           this.programWithRolloutService.getResourceLink(item.id).subscribe((res:any)=> {
             if(res.result.deepLinks.length > 0) {
-              this.utilService.copyTextToClipboard(res.result.deepLinks)
+              const dialogRef = this.dialog.open(
+                DialogPopupComponent,
+                {
+                  width: '39.375rem',
+                  height: 'auto',
+                  data: {
+                    header: 'COPY_RESOURCE',
+                    link: res.result.deepLinks,
+                    copyButton: 'COPY_LINK',
+                  },
+                }
+              );
+
+              dialogRef.afterClosed().subscribe((result) => {
+                return result ? true : false;
+              });
             }
             else {
               let data = {
