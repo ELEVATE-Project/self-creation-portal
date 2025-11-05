@@ -408,6 +408,37 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
     );
   }
 
+  checkCombinedTaskEvidenceIsAvailable() {
+    if(this.libProjectService.projectData.certificate) {
+      return this.libProjectService.projectData.certificate.criteria.conditions?.C3?.expression.includes("||") ? true : false;
+    }
+    else {
+      return true;
+    }
+  }
+
+  setTasksCombinedCriteriaSelection(value:string) {
+    if(value == '1') {
+      this.libProjectService.projectData.tasks.map((task:any) => {
+        this.libProjectService.projectData.certificate.criteria.conditions.C3.expression = this.libProjectService.projectData.certificate.criteria.conditions.C3.expression.length == 0 ?  this.libProjectService.projectData.certificate.criteria.conditions.C3.expression + task.id : this.libProjectService.projectData.certificate.criteria.conditions.C3.expression + '||' + task.id
+      })
+    }
+    else {
+      this.libProjectService.projectData.certificate.criteria.conditions.C3.expression = '';
+      const keys = Object.keys(this.libProjectService.projectData.certificate.criteria.conditions.C3.conditions);
+      keys.map((taskKey:string) => {
+        this.libProjectService.projectData.certificate.criteria.conditions.C3.expression = this.libProjectService.projectData.certificate.criteria.conditions.C3.expression.length == 0 ?  this.libProjectService.projectData.certificate.criteria.conditions.C3.expression + taskKey : this.libProjectService.projectData.certificate.criteria.conditions.C3.expression + '&&' + taskKey
+      })
+    }
+  }
+
+  setTaskEvidenceCombinedCriteriaValue(value:any) {
+    const keys = Object.keys(this.libProjectService.projectData.certificate.criteria.conditions.C3.conditions);
+    keys.map((taskKey:string) => {
+      this.libProjectService.projectData.certificate.criteria.conditions.C3.conditions[taskKey].value = value;
+    })
+  }
+
   addTasktoCertificatePage(projectData:any) {
     this.tasks = projectData.tasks.filter((task:any) => {
       if(task?.evidence_details?.min_no_of_evidences) {
@@ -555,6 +586,7 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
         ],
       ],
       evidenceRequired: ['1', Validators.required],
+      evidenceRequiredCombined: ['1', Validators.required],
       enableProjectEvidence: [],
       attachLogo: this.fb.array([]),
       attachSign: this.fb.array([]),
