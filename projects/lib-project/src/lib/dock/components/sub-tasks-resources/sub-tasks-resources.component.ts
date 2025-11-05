@@ -230,13 +230,15 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy, AfterViewCh
   }
 
   getButtonStates = (task: any) => {
-    const disableAll = !task?.name?.length || task?.solution_details?.name;
+    const disableAll = !task?.name?.length || task?.solution_details?.name || task.type == 'reflection';
     const disableObservation = !!(task?.learning_resources?.length || task?.resources?.length || task?.children?.length);
+    const disableReflection = !!(task?.learning_resources?.length || task?.resources?.length || task?.children?.length);
 
     return [
       { "label": "ADD_OBSERVATION", "disable": disableAll || disableObservation },
       { "label": "ADD_LEARNING_RESOURCE", "disable": disableAll },
-      { "label": "ADD_SUBTASKS", "disable": disableAll }
+      { "label": "ADD_SUBTASKS", "disable": disableAll },
+      { "label": "ADD_REFLECTION", "disable": disableAll || disableReflection }
     ];
   };
 
@@ -252,7 +254,9 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy, AfterViewCh
             }),
              resources : task?.learning_resources?.length > 0 ? task.learning_resources : [],
              children: task?.children ? task.children : [],
-             solution_details: task?.solution_details ? task?.solution_details : {}
+             solution_details: task?.solution_details ? task?.solution_details : {},
+             link: task.link && task.link.length > 0 ? task.link : '',
+            type : task.link && task.link.length > 0 ? 'reflection':task.type
         };
     };
     if (this.libProjectService.projectData?.tasks?.length > 0) {
@@ -327,9 +331,27 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy, AfterViewCh
           this.addSubTask(taskIndex)
           break;
 
+        case 'ADD_REFLECTION':
+          this.addReflection(taskIndex)
+          break;
+
         default:
           break;
       }
+  }
+
+  addReflection(taskIndex:number) {
+    this.taskData[taskIndex].type = 'reflection';
+    this.taskData[taskIndex].link = this.libProjectService.projectConfig.project_reflection_task_redirect_url;
+    this.taskData[taskIndex].buttons = this.getButtonStates(this.taskData[taskIndex])
+    this.saveSubtask();
+  }
+
+  deleteReflection(taskIndex:number) {
+    this.taskData[taskIndex].type = 'content';
+    delete this.taskData[taskIndex].link;
+    this.taskData[taskIndex].buttons = this.getButtonStates(this.taskData[taskIndex])
+    this.saveSubtask()
   }
 
   addSubTask(taskIndex: number) {
@@ -377,7 +399,10 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy, AfterViewCh
       for (let i = 0; i < this.projectData.tasks.length; i++) {
         let subtasks:any = []  // Move subtasks initialization here
         this.projectData.tasks[i]['learning_resources'] = this.taskData[i]?.resources,
-        this.projectData.tasks[i].type = this.taskData[i]?.solution_details.name ? "observation" : (this.taskData[i]?.resources.length ? "content" : "simple");
+        this.projectData.tasks[i].type = this.taskData[i]?.solution_details.name ? "observation" : (this.taskData[i]?.resources.length ? "content" : (this.taskData[i].type == 'reflection' ? 'reflection' :"simple"));
+        if(this.projectData.tasks[i].type == 'reflection') {
+          this.projectData.tasks[i].link = this.taskData[i]?.link
+        }
         for (let j = 0; j < this.taskData[i]?.subTasks.value.subtasks.length; j++) {
           subtasks.push(
             {

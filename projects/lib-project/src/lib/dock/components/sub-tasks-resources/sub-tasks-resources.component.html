@@ -56,6 +56,18 @@
                                 </div>
                                 }
 
+                                @if (button.label === 'ADD_REFLECTION' && item?.link?.length > 0){
+                                <div class="flex flex-col">
+                                    <div class="flex justify-between items-center p-1 bg-gray-100 rounded mb-2">
+                                        <section class="flex items-center gap-2">
+                                            <img src="./assets/images/video-icon.png" alt="My Image">
+                                            <p class="overflow-ellipsis">{{ 'REFLECTION' | translate}}</p>
+                                        </section>
+                                        <mat-icon (click)="deleteReflection(i)" class="cursor-pointer">cancel</mat-icon>
+                                    </div>
+                                </div>
+                                }
+
                                 @if (button.label === 'ADD_OBSERVATION' && item.solution_details.name){
                                     <div class="flex flex-col">
                                             <div class="flex justify-between items-center p-1 bg-gray-100 rounded mb-2">

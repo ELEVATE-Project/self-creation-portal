@@ -262,9 +262,13 @@
     "FAILED":"असफल",
     "DRAFT":"मसौदा",
     "TASK_EVIDENCE_LABEL":"इस कार्य के लिए आवश्यक प्रमाणों की संख्या",
+    "TASK_EVIDENCE_LABEL_COMBINED":"इस कार्य के लिए आवश्यक प्रमाणों की संख्या",
+    "ENABLE_TASK_EVIDENCE_COMBINED":"इस कार्य के लिए आवश्यक प्रमाणों की संख्या",
     "FAILED_TO_COPY_TEXT":"पाठ की प्रतिलिपि बनाने में विफल",
     "COPY_RESOURCE":"संसाधन लिंक",
     "COPY_LINK":"लिंक की प्रतिलिपि करें",
     "COPIED_TO_CLIPBOARD":"क्लिपबोर्ड पर कॉपी किया गया",
-    "NO_LINK_AVAILABLE_TO_COPY":"कॉपी करने के लिए कोई लिंक उपलब्ध नहीं है"
+    "NO_LINK_AVAILABLE_TO_COPY":"कॉपी करने के लिए कोई लिंक उपलब्ध नहीं है",
+    "ADD_REFLECTION":"प्रतिबिंब जोड़ें",
+    "REFLECTION":"प्रतिबिंब"
 }
