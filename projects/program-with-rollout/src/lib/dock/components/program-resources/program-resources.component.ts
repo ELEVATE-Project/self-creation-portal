@@ -389,7 +389,7 @@ getsolutionList() {
         }
       case 'COPY_RESOURCE':
         if (item.type === 'project') {
-          this.programWithRolloutService.getResourceLink(item.id).subscribe((res:any)=> {
+          this.programWithRolloutService.getResourceLink(item.published_id).subscribe((res:any)=> {
             if(res.result.deepLinks.length > 0) {
               const dialogRef = this.dialog.open(
                 DialogPopupComponent,

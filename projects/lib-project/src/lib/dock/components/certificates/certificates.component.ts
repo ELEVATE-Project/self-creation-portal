@@ -210,7 +210,7 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
               else {
                 this.certificate = this.libProjectService.projectData.certificate;
                 this.selectedYes = "1"
-                this.certificateForm.patchValue({issuerName:this.libProjectService.projectData.certificate.issuer,evidenceRequired:this.libProjectService.projectData.certificate.criteria?.conditions?.C2?.conditions?.C1?.value,certificateType:this.libProjectService?.projectData?.certificate?.code})
+                this.certificateForm.patchValue({issuerName:this.libProjectService.projectData.certificate.issuer,evidenceRequired:this.libProjectService.projectData.certificate.criteria?.conditions?.C2?.conditions?.C1?.value,certificateType:this.libProjectService?.projectData?.certificate?.code,evidenceRequiredCombined:this.libProjectService.projectData.certificate.criteria?.conditions?.C4?.conditions[Object.keys(this.libProjectService.projectData.certificate.criteria?.conditions?.C4?.conditions)[0]].value})
               }
             }
             this.getCertificateForm()
@@ -232,7 +232,7 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
             this.selectedYes = this.libProjectService.projectData.certificate ? "1":"2";
             if(this.libProjectService.projectData.certificate) {
               this.addTasktoCertificatePage(this.libProjectService.projectData)
-              this.certificateForm.patchValue({evidenceRequired:this.libProjectService.projectData.certificate.criteria?.conditions?.C2?.conditions?.C1?.value})
+              this.certificateForm.patchValue({evidenceRequired:this.libProjectService.projectData.certificate.criteria?.conditions?.C2?.conditions?.C1?.value,evidenceRequiredCombined:this.libProjectService.projectData.certificate.criteria?.conditions?.C4?.conditions[Object.keys(this.libProjectService.projectData.certificate.criteria?.conditions?.C4?.conditions)[0]].value})
             }
           }
           if ((this.libProjectService?.projectData?.stage == resourceStatus.REVIEW || this.mode === solutionModes.REVIEWER_VIEW || this.mode === solutionModes.REVIEW || this.mode === solutionModes.REQUEST_FOR_EDIT || this.mode === solutionModes.CREATOR_VIEW || this.mode === solutionModes.META_REQUEST_FOR_EDIT || this.mode === solutionModes.META_REVIEW)&& (this.mode !== solutionModes.VIEWONLY)) {
@@ -257,7 +257,7 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
                     this.certificate = this.libProjectService.projectData.certificate;
                     this.selectedYes = "1"
                     this.setIssuerName(this.libProjectService.projectData.certificate.issuer)
-                    this.certificateForm.patchValue({issuerName:this.libProjectService.projectData.certificate.issuer,evidenceRequired:this.libProjectService.projectData.certificate.criteria?.conditions?.C2?.conditions?.C1?.value})
+                    this.certificateForm.patchValue({issuerName:this.libProjectService.projectData.certificate.issuer,evidenceRequired:this.libProjectService.projectData.certificate.criteria?.conditions?.C2?.conditions?.C1?.value,evidenceRequiredCombined:this.libProjectService.projectData.certificate.criteria?.conditions?.C4?.conditions[Object.keys(this.libProjectService.projectData.certificate.criteria?.conditions?.C4?.conditions)[0]].value})
                     this.updateSignaturePreview()
                     this.setLogoPreview();
                     this.updateCertificatePreview('stateTitle',this.libProjectService.projectData.certificate.issuer,'text')
@@ -282,7 +282,7 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
                 if(this.viewOnly) {
                   if(this.libProjectService.projectData.certificate) {
                     this.addTasktoCertificatePage(this.libProjectService.projectData)
-                    this.certificateForm.patchValue({evidenceRequired:this.libProjectService.projectData.certificate.criteria?.conditions?.C2?.conditions?.C1?.value})
+                    this.certificateForm.patchValue({evidenceRequired:this.libProjectService.projectData.certificate.criteria?.conditions?.C2?.conditions?.C1?.value,evidenceRequiredCombined:this.libProjectService.projectData.certificate.criteria?.conditions?.C4?.conditions[Object.keys(this.libProjectService.projectData.certificate.criteria?.conditions?.C4?.conditions)[0]].value})
                   }
                 }
                 this.certificateAddIntoHtml();
@@ -335,7 +335,7 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
                     this.certificate = this.libProjectService.projectData.certificate;
                     this.selectedYes = "1"
                     this.setIssuerName(this.libProjectService.projectData.certificate.issuer)
-                    this.certificateForm.patchValue({issuerName:this.libProjectService.projectData.certificate.issuer,evidenceRequired:this.libProjectService.projectData.certificate.criteria?.conditions?.C2?.conditions?.C1?.value})
+                    this.certificateForm.patchValue({issuerName:this.libProjectService.projectData.certificate.issuer,evidenceRequired:this.libProjectService.projectData.certificate.criteria?.conditions?.C2?.conditions?.C1?.value,evidenceRequiredCombined:this.libProjectService.projectData.certificate.criteria?.conditions?.C4?.conditions[Object.keys(this.libProjectService.projectData.certificate.criteria?.conditions?.C4?.conditions)[0]].value})
                     this.updateSignaturePreview()
                     this.setLogoPreview();
                     this.updateCertificatePreview('stateTitle',this.libProjectService.projectData.certificate.issuer,'text')
@@ -360,7 +360,7 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
                 if(this.viewOnly) {
                   if(this.libProjectService.projectData.certificate) {
                     this.addTasktoCertificatePage(this.libProjectService.projectData)
-                    this.certificateForm.patchValue({evidenceRequired:this.libProjectService.projectData.certificate.criteria?.conditions?.C2?.conditions?.C1?.value})
+                    this.certificateForm.patchValue({issuerName:this.libProjectService.projectData.certificate.issuer,evidenceRequired:this.libProjectService.projectData.certificate.criteria?.conditions?.C2?.conditions?.C1?.value,certificateType:this.libProjectService?.projectData?.certificate?.code,evidenceRequiredCombined:this.libProjectService.projectData.certificate.criteria?.conditions?.C4?.conditions[Object.keys(this.libProjectService.projectData.certificate.criteria?.conditions?.C4?.conditions)[0]].value})
                   }
                 }
                 this.certificateAddIntoHtml();
@@ -410,7 +410,7 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
 
   checkCombinedTaskEvidenceIsAvailable() {
     if(this.libProjectService.projectData.certificate) {
-      return this.libProjectService.projectData.certificate.criteria.conditions?.C3?.expression.includes("||") ? true : false;
+      return this.libProjectService.projectData.certificate.criteria.conditions?.C4 ? true : false;
     }
     else {
       return true;
@@ -419,23 +419,32 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
 
   setTasksCombinedCriteriaSelection(value:string) {
     if(value == '1') {
-      this.libProjectService.projectData.tasks.map((task:any) => {
-        this.libProjectService.projectData.certificate.criteria.conditions.C3.expression = this.libProjectService.projectData.certificate.criteria.conditions.C3.expression.length == 0 ?  this.libProjectService.projectData.certificate.criteria.conditions.C3.expression + task.id : this.libProjectService.projectData.certificate.criteria.conditions.C3.expression + '||' + task.id
+      const keys = Object.keys(this.libProjectService.projectData.certificate.criteria.conditions.C3.conditions);
+      keys.map((task:any) => {
+        this.libProjectService.projectData.certificate.criteria.conditions.C4 = {
+          expression:'',
+          conditions:{}
+        };
+        this.libProjectService.projectData.certificate.criteria.conditions.C4.expression = this.libProjectService.projectData.certificate.criteria.conditions?.C4?.expression?.length == 0 ? task: this.libProjectService.projectData.certificate.criteria.conditions?.C4?.expression + '||' + task
+        this.libProjectService.projectData.certificate.criteria.conditions.C4.conditions[task]= this.libProjectService.projectData.certificate.criteria.conditions.C3.conditions[task];
+        this.libProjectService.projectData.certificate.criteria.expression = this.libProjectService.projectData?.certificate?.criteria?.expression + "&&C4"
       })
     }
     else {
-      this.libProjectService.projectData.certificate.criteria.conditions.C3.expression = '';
-      const keys = Object.keys(this.libProjectService.projectData.certificate.criteria.conditions.C3.conditions);
-      keys.map((taskKey:string) => {
-        this.libProjectService.projectData.certificate.criteria.conditions.C3.expression = this.libProjectService.projectData.certificate.criteria.conditions.C3.expression.length == 0 ?  this.libProjectService.projectData.certificate.criteria.conditions.C3.expression + taskKey : this.libProjectService.projectData.certificate.criteria.conditions.C3.expression + '&&' + taskKey
-      })
+      delete this.libProjectService.projectData.certificate.criteria.conditions.C4;
+      this.libProjectService.projectData.certificate.criteria.expression = this.libProjectService.projectData?.certificate?.criteria?.expression.includes('&&C4') ? this.libProjectService.projectData?.certificate?.criteria?.expression.replace("&&C4", "") : this.libProjectService.projectData.certificate.criteria.expression ;
     }
   }
 
   setTaskEvidenceCombinedCriteriaValue(value:any) {
     const keys = Object.keys(this.libProjectService.projectData.certificate.criteria.conditions.C3.conditions);
-    keys.map((taskKey:string) => {
-      this.libProjectService.projectData.certificate.criteria.conditions.C3.conditions[taskKey].value = value;
+    keys.map((task:any) => {
+      this.libProjectService.projectData.certificate.criteria.conditions.C4 = {
+        expression:'',
+        conditions:{}
+      };
+      this.libProjectService.projectData.certificate.criteria.conditions.C4.expression = this.libProjectService.projectData.certificate.criteria.conditions?.C4?.expression?.length == 0 ? task: this.libProjectService.projectData.certificate.criteria.conditions?.C4?.expression + '||' + task
+      this.libProjectService.projectData.certificate.criteria.conditions.C4.conditions[task]= {...this.libProjectService.projectData.certificate.criteria.conditions.C3.conditions[task],...{value:value}}
     })
   }
 
@@ -782,7 +791,7 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
             if(this.libProjectService.formMeta.isProjectEvidenceSelected == 0) {
               this.certificateForm.controls['evidenceRequired'].disable()
             }
-            this.certificateForm.patchValue({evidenceRequired:this.libProjectService.projectData.certificate.criteria?.conditions?.C2?.conditions?.C1?.value})
+            this.certificateForm.patchValue({evidenceRequired:this.libProjectService.projectData.certificate.criteria?.conditions?.C2?.conditions?.C1?.value,evidenceRequiredCombined:this.libProjectService.projectData.certificate.criteria?.conditions?.C4?.conditions[Object.keys(this.libProjectService.projectData.certificate.criteria?.conditions?.C4?.conditions)[0]].value})
             this.libProjectService.projectData.tasks.forEach((element:any) => {
               if(element.allow_evidences) {
                 this.libProjectService.formMeta.taskEvidenceSelected[element.id] = this.libProjectService.projectData.certificate.criteria.conditions.C3.expression.includes(element.id) ? 1 : 0
