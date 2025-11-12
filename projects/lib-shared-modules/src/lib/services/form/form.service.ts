@@ -80,7 +80,7 @@ export class FormService {
     const config = {
       url: this.configService.urlConFig.FORM_URLS.GET_SCP_SUB_ENTITY_LIST+'?subEntityType=professional_subroles',
       payload: {
-        parentEntities:['teacher']
+        parentEntities:values
       }
     };
     return this.httpService.post(config.url, config.payload).pipe(
