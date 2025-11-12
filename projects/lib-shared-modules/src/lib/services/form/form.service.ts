@@ -72,6 +72,25 @@ export class FormService {
     );
   }
 
+  getEntityTargeting(stateId: any) {
+    return this.httpService.get(this.configService.urlConFig.FORM_URLS.READ_TARGETING_ENTITY + '/'+stateId);
+  }
+
+  getProfessionSubRoles(values:any) {
+    const config = {
+      url: this.configService.urlConFig.FORM_URLS.GET_SCP_SUB_ENTITY_LIST+'?subEntityType=professional_subroles',
+      payload: {
+        parentEntities:['teacher']
+      }
+    };
+    return this.httpService.post(config.url, config.payload).pipe(
+      map((result: any) => {
+        let data = result?.result || [];
+        return data;
+      })
+    );
+  }
+
   getEntitiesList(url: string,entityType?:string,id?:string) {
     return this.httpService.get(url+ (id ? ("/"+id) :'')+ (entityType ? '?'+`entityType=${entityType}` : ''));
   }

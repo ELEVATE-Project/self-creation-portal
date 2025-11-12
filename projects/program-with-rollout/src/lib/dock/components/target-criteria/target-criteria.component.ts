@@ -193,6 +193,16 @@ export class TargetCriteriaComponent implements OnInit {
       this.criteria[0].form[2] = targetFormInfo;
       this.targetedEntity = '';
     }
+
+    if(key == 'roles') {
+      this.formService
+      .getProfessionSubRoles(
+      event.value.map((value:any) => value.externalId),
+      )
+      .subscribe((res: any) => {
+        this.criteria[0].form[3].options = res.data;
+      });
+    }
     if (key !== 'roles' && key !== 'sub_roles' && key!== 'gender') {
       this.selection.clear();
       this.criteriaFilters = [];
@@ -275,27 +285,22 @@ export class TargetCriteriaComponent implements OnInit {
         .subscribe((res: any) => {
           this.criteria[0].form[2].options = res.result;
         });
-        this.formService
-        .getEntitiesList(
-          this.dialogData.config.factors.find((element:any) => element.key == 'professional_subroles').api.base_name+'/'+this.dialogData.config.factors.find((element:any) => element.key == 'professional_role').api.endpoint,
-          this.dialogData.config.factors.find((element:any) => element.key == 'professional_subroles').api.query_params.entityType,
-        )
-        .subscribe((res: any) => {
-          this.criteria[0].form[3].options = res.result;
-        });
-      this.formService
-        .getEntitiesListAsType(
-          this.subEntityURL,
-          event.value._id,
-          Array.isArray(this.formData.state)
-            ? this.formData.state[0]._id
-            : this.formData.state._id,
-          1,
-          this.pageCount
-        )
-        .subscribe((res: any) => {
-          this.insertDataIntoTable(res.result.data, res.result.count);
-        });
+
+        if(event.value._id !== 'state') {
+          this.formService
+          .getEntitiesListAsType(
+            this.subEntityURL,
+            event.value._id,
+            Array.isArray(this.formData.state)
+              ? this.formData.state[0]._id
+              : this.formData.state._id,
+            1,
+            this.pageCount
+          )
+          .subscribe((res: any) => {
+            this.insertDataIntoTable(res.result.data, res.result.count);
+          });
+        }
     }
     if (
       key != 'roles' &&
@@ -322,16 +327,14 @@ export class TargetCriteriaComponent implements OnInit {
       ? this.formData.state[0]
       : this.formData.state;
     this.formService
-      .getEntitiesList(
-        this.hierarchyList,
-        '',
+      .getEntityTargeting(
         Array.isArray(this.formData.state)
           ? this.formData.state[0]?.externalId
           : this.formData.state?.externalId
       )
       .subscribe((res: any) => {
-        this.targetEntityArray = res.result[0].childHierarchyPath;
-        this.criteria[0].form[1].options = res.result[0].childHierarchyPath.map(
+        this.targetEntityArray = res.result.childHierarchyPath;
+        this.criteria[0].form[1].options = res.result.childHierarchyPath.map(
           (element: string) => {
             return {
               _id: element,
@@ -383,6 +386,7 @@ export class TargetCriteriaComponent implements OnInit {
           }
         }
       });
+
     this.formService
       .getEntitiesList(
         this.dialogData.config.factors.find((element:any) => element.key == 'professional_role').api.base_name+'/'+this.dialogData.config.factors.find((element:any) => element.key == 'professional_role').api.endpoint,
@@ -391,7 +395,14 @@ export class TargetCriteriaComponent implements OnInit {
       .subscribe((res: any) => {
         this.criteria[0].form[2].options = res.result;
       });
-    this.formService
+      if(this.formData.roles && this.formData.roles.length > 0) {
+        this.formService
+        .getProfessionSubRoles(this.formData.roles.map((role:any) => role.externalId),)
+        .subscribe((res: any) => {
+          this.criteria[0].form[3].options = res.data;
+        });
+      }
+      this.formService
       .getEntitiesList(
         this.dialogData.config.factors.find((element:any) => element.key == 'professional_subroles').api.base_name+'/'+this.dialogData.config.factors.find((element:any) => element.key == 'professional_role').api.endpoint,
         this.dialogData.config.factors.find((element:any) => element.key == 'professional_subroles').api.query_params.entityType,
@@ -654,7 +665,7 @@ export class TargetCriteriaComponent implements OnInit {
 
   isDisable() {
     let disable = false;
-    if (this.targetedEntity.length > 0 && this.selection.selected.length == 0) {
+    if (this.targetedEntity.length > 0 && this.selection.selected.length == 0 && this.targetedEntity !== 'state') {
       disable = true;
     }
     if (

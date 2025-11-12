@@ -16,6 +16,8 @@
     "FORM_URLS": {
         "READ_FORM": "scp/v1/form/read",
         "READ_ENTITY_TYPE": "scp/v1/entity-types/read",
+        "READ_TARGETING_ENTITY": "scp/v1/targeting/hierarchy",
+        "GET_SCP_SUB_ENTITY_LIST":"scp/v1/targeting/subEntityList",
         "GET_ENTITIES_LIST":"entity-management/v1/entities/entityListBasedOnEntityType",
         "GET_SUB_ENTITIES_LIST":"entity-management/v1/entities/subEntityList",
         "GET_ENTITY_ROLES":"entity-management/v1/entities/targetedRoles",
