@@ -29,7 +29,16 @@ export class LayoutComponent {
     this.setConfig();
     this.subscription.add(
       this.programWithRolloutService.currentRolloutData.subscribe((data:any) => {
-        this.sidenavData= data?.sidenavData.sidenav
+        this.sidenavData = data?.sidenavData.sidenav
+        console.log("calledd")
+        const button = data?.sidenavData.headerData.buttons.viewOnly.find((button:any) => button.title === 'EDIT')
+        if(!button) {
+          data?.sidenavData.headerData.buttons.viewOnly.push({
+            "title": "EDIT",
+            "disable": false,
+            "cssClass": "primary-button-enable"
+          })
+        }
         this.headerData = data?.sidenavData.headerData
         this.config = this.programWithRolloutService.programConfig
       })
