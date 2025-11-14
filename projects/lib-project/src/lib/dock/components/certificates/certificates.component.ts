@@ -419,12 +419,12 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
 
   setTasksCombinedCriteriaSelection(value:string) {
     if(value == '1') {
+      this.libProjectService.projectData.certificate.criteria.conditions.C4 = {
+        expression:'',
+        conditions:{}
+      };
       const keys = Object.keys(this.libProjectService.projectData.certificate.criteria.conditions.C3.conditions);
       keys.map((task:any) => {
-        this.libProjectService.projectData.certificate.criteria.conditions.C4 = {
-          expression:'',
-          conditions:{}
-        };
         this.libProjectService.projectData.certificate.criteria.conditions.C4.expression = this.libProjectService.projectData.certificate.criteria.conditions?.C4?.expression?.length == 0 ? task: this.libProjectService.projectData.certificate.criteria.conditions?.C4?.expression + '||' + task
         this.libProjectService.projectData.certificate.criteria.conditions.C4.conditions[task]= this.libProjectService.projectData.certificate.criteria.conditions.C3.conditions[task];
         this.libProjectService.projectData.certificate.criteria.expression = this.libProjectService.projectData?.certificate?.criteria?.expression + "&&C4"
