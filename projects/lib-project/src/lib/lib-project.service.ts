@@ -130,7 +130,7 @@ export class LibProjectService {
         this.projectData.certificate.criteria.conditions.C3.validationText = ''; // to remove validation texts if old task were added.
         let array = Object.keys(this.projectData.certificate.criteria.conditions.C3.conditions)
         array.forEach((element:any) => {
-          this.projectData.certificate.criteria.conditions.C3.validationText = this.projectData.certificate.criteria.conditions.C3.validationText + " Add "+this.projectData.certificate.criteria.conditions.C3.conditions[element].value + " evidence for the task " + this.projectData.tasks.find((task:any)=> task.id == element)?.name+'. '
+          this.projectData.certificate.criteria.conditions.C3.validationText = this.projectData.certificate.criteria.conditions.C3.validationText + " Add "+this.projectData.certificate.criteria.conditions.C3.conditions[element].value + " evidence"+  (parseInt(this.projectData.certificate.criteria.conditions.C3.conditions[element].value) > 1 ? "s":'') +" for the task " + this.projectData.tasks.find((task:any)=> task.id == element)?.name+'. '
         })
       }
       if (

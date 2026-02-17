@@ -165,7 +165,7 @@ export class TargetCriteriaComponent implements OnInit {
 
   insertDataIntoTable(data: any, count?: number) {
     let newArray = data.map((element: any) => {
-      // delete element.label;
+      delete element.label;
       delete element.entityType;
       delete element.value;
       // delete element.name;
