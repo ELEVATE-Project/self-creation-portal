@@ -235,7 +235,7 @@ export class SubTasksResourcesComponent implements OnInit,OnDestroy, AfterViewCh
     const disableReflection = !!(task?.learning_resources?.length || task?.resources?.length || task?.children?.length);
 
     return [
-      { "label": "ADD_OBSERVATION", "disable": disableAll || disableObservation },
+      // { "label": "ADD_OBSERVATION", "disable": disableAll || disableObservation },
       { "label": "ADD_LEARNING_RESOURCE", "disable": disableAll },
       { "label": "ADD_SUBTASKS", "disable": disableAll },
       { "label": "ADD_REFLECTION", "disable": disableAll || disableReflection }

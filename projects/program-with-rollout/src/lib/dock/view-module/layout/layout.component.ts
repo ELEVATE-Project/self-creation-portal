@@ -27,22 +27,6 @@ export class LayoutComponent {
   ngOnInit(){
     this.getData()
     this.setConfig();
-    this.subscription.add(
-      this.programWithRolloutService.currentRolloutData.subscribe((data:any) => {
-        this.sidenavData = data?.sidenavData.sidenav
-        console.log("calledd")
-        const button = data?.sidenavData.headerData.buttons.viewOnly.find((button:any) => button.title === 'EDIT')
-        if(!button) {
-          data?.sidenavData.headerData.buttons.viewOnly.push({
-            "title": "EDIT",
-            "disable": false,
-            "cssClass": "primary-button-enable"
-          })
-        }
-        this.headerData = data?.sidenavData.headerData
-        this.config = this.programWithRolloutService.programConfig
-      })
-    )
     this.utilService.saveComment = true;
   }
 
@@ -57,6 +41,28 @@ export class LayoutComponent {
       this.programWithRolloutService.setRolloutData( {
         "sidenavData": this.router.url.includes('project-details') ? form?.result?.data?.fields?.controls.find((item:any)=> item.title ===  "ROLL_OUT") : form?.result?.data?.fields?.controls.find((item:any)=> item.title ===  "PROGRAM")
       });
+      this.subscription.add(
+        this.programWithRolloutService.currentRolloutData.subscribe((data:any) => {
+          this.sidenavData = data?.sidenavData.sidenav
+          console.log("calledd")
+          let button = null;
+          if(data?.sidenavData.headerData.buttons.viewOnly) {
+            button = data?.sidenavData.headerData.buttons.viewOnly.find((button:any) => button.title === 'EDIT')
+          }
+          else {
+            data.sidenavData.headerData.buttons.viewOnly = [];
+          }
+          if(!button) {
+            data?.sidenavData.headerData.buttons.viewOnly.push({
+              "title": "EDIT",
+              "disable": false,
+              "cssClass": "primary-button-enable"
+            })
+          }
+          this.headerData = data?.sidenavData.headerData
+          this.config = this.programWithRolloutService.programConfig
+        })
+      )
       this.programWithRolloutService.upDateProgramTitle();
       if(this.router.url.includes('project-details')){
         this.programWithRolloutService.resourceStatus.subscribe((data:any) => {

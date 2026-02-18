@@ -74,7 +74,7 @@
                                 'disabled-with-pointer-events': !task.get(tasksData?.allowEvidence.name)?.value,
                                 'placeholder-text-black': task.get(tasksData?.allowEvidence.name)?.value
                               }">
-                                <mat-select class="border px-2 w-40" multiple="true" [formControlName]="tasksData.fileType.name" (selectionChange)="checkValidation()" placeholder="{{'SELECTE_FILE_TYPES' | translate}">
+                                <mat-select class="border px-2 w-40" multiple="true" [formControlName]="tasksData.fileType.name" (selectionChange)="checkValidation()" placeholder="{{'SELECTE_FILE_TYPES' | translate}}">
                                     <mat-option [matTooltip]="option.label | languageTranslate: language" *ngFor="let option of tasksData.fileType.options" [value]="option.value">
                                         {{ option.label  | languageTranslate: language}}
                                     </mat-option>
