@@ -17,12 +17,13 @@ import { RESOURCE_URLS, ROLL_OUT_URLS } from '../../services/configs/url.config.
 import { CommonModule } from '@angular/common';
 import { map, Observable, Subscription } from 'rxjs';
 import { ProgramWithRolloutService } from 'program-with-rollout';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 
 
 @Component({
   selector: 'app-resource-holder',
   standalone: true,
-  imports: [HeaderComponent,SideNavbarComponent, CardComponent, SearchComponent, PaginationComponent, FilterComponent, MatSidenavModule, MatButtonModule, MatIconModule, MatToolbarModule, MatListModule, MatCardModule,TranslateModule, NoResultFoundComponent, CommonModule, ArrayContainsAllDirective],
+  imports: [HeaderComponent,SideNavbarComponent, CardComponent, SearchComponent, PaginationComponent, FilterComponent, MatSidenavModule, MatButtonModule, MatIconModule, MatToolbarModule, MatListModule, MatCardModule,TranslateModule, NoResultFoundComponent, CommonModule, ArrayContainsAllDirective,MatProgressSpinnerModule],
   templateUrl: './resource-holder.component.html',
   styleUrl: './resource-holder.component.scss',
   providers: [DatePipe]
@@ -38,6 +39,7 @@ export class ResourceHolderComponent implements OnInit{
     currentPage: 0
   };
   permissions:any = [];
+  isLoading:boolean = true;
 
   filters = {
     search: '',
@@ -235,6 +237,7 @@ export class ResourceHolderComponent implements OnInit{
     const result = response.result || { data: [], count: 0, changes_requested_count: 0 };
     this.lists = this.addActionButtons(result.data);
     this.filters.filteredLists = this.lists;
+    this.isLoading = false;
     this.pagination.totalCount = result.count;
     if (this.lists.length === 0) {
       this.noResultMessage = this.filters.search ? "NO_RESULT_FOUND" : this.noResultFound;
@@ -578,8 +581,8 @@ applyButtons(button: any, cardItem: any, clearExisting: boolean = false): void {
     }
     this.pagination.currentPage = 0;
     if(this.paginationComponent) {
-    this.paginationComponent.resetToFirstPage();
-     }
+      this.paginationComponent.resetToFirstPage();
+    }
     this.updateQueryParams();
   }
 
