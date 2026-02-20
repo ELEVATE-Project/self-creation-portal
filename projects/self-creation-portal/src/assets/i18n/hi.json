@@ -270,5 +270,6 @@
     "COPIED_TO_CLIPBOARD":"क्लिपबोर्ड पर कॉपी किया गया",
     "NO_LINK_AVAILABLE_TO_COPY":"कॉपी करने के लिए कोई लिंक उपलब्ध नहीं है",
     "ADD_REFLECTION":"प्रतिबिंब जोड़ें",
-    "REFLECTION":"प्रतिबिंब"
+    "REFLECTION":"प्रतिबिंब",
+    "LOADING_PROGRESS":"प्रसंस्करण"
 }

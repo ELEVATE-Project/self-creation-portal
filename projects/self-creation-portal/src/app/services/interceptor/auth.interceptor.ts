@@ -25,13 +25,16 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   let authReq = req.clone({})
   if(onlineStatus){
+    let language:any = localStorage.getItem('preferred_language');
+    language = language ? JSON.parse(language).value :'en';
     if (req.headers.get('X-Requested-With') === 'XMLHttpRequest') {
       if(authToken) {
         if(req.url.includes('entity-management')){
           authReq = req.clone({
             url: `${environment.baseURL}${req.url}`,
             setHeaders: {
-              'x-auth-token': `${authToken}`
+              'x-auth-token': `${authToken}`,
+              'accept-language': language
             }
           });
         }
@@ -39,7 +42,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           authReq = req.clone({
             url: `${environment.baseURL}${req.url}`,
             setHeaders: {
-              'x-auth-token': `${environment.prefix} ${authToken}`
+              'x-auth-token': `${environment.prefix} ${authToken}`,
+              'accept-language': language
             }
           });
         }

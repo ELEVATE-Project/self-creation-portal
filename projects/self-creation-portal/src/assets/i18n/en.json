@@ -270,5 +270,6 @@
     "COPIED_TO_CLIPBOARD":"Copied to clipboard",
     "NO_LINK_AVAILABLE_TO_COPY":"No link available to copy",
     "ADD_REFLECTION":"Add reflection",
-    "REFLECTION":"reflection"
+    "REFLECTION":"reflection",
+    "LOADING_PROGRESS":"Processing. Just a moment."
 }

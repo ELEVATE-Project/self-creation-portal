@@ -105,6 +105,36 @@ export class TargetCriteriaComponent implements OnInit {
     }
   }
 
+  onSortChange(event:any) {
+    console.log(event)
+    this.formService
+    .getEntitiesListAsType(
+      this.subEntityURL,
+      this.targetedEntity,
+      this.filterSelectedValue.length > 0
+        ? this.filterSelectedValue
+        : Array.isArray(this.formData.state)
+        ? this.formData.state[0]._id
+        : this.formData.state._id,
+      0,
+      this.pageCount,
+      event.active,
+      event.direction
+    )
+    .subscribe((res: any) => {
+      this.insertDataIntoTable(res.result.data, res.result.count);
+      const setA = new Set(
+        res.result.data.map((item: any) => JSON.stringify(item))
+      );
+      let selected = this.formData[
+        this.formData.entity_targeting.value
+      ].filter((item: any) => setA.has(JSON.stringify(item)));
+      selected.forEach((element: any) => {
+        this.selection.select(element);
+      });
+    });
+  }
+
   getEntitiesAndSubEntitiesURL() {
     this.dialogData.config.factors.forEach((element:any) => {
       if(element.key == 'state') {
@@ -162,6 +192,9 @@ export class TargetCriteriaComponent implements OnInit {
   // tableColumns() {
   //     return ['select', ...this.displayedColumns];
   // }
+  isSortable(column: string): boolean {
+    return column === 'name' || column === 'externalId';
+  }
 
   insertDataIntoTable(data: any, count?: number) {
     let newArray = data.map((element: any) => {
