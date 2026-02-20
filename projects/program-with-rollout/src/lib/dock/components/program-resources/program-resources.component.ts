@@ -106,13 +106,13 @@ ngOnInit(){
   if(!this.resourceIds?.length  && !this.programId){
     this.createProgram();
   }
+  if (this.programId && (this.programWithRolloutService?.programData?.stage == resourceStatus.REVIEW  || this.mode === solutionModes.REQUEST_FOR_EDIT || this.mode === solutionModes.REVIEWER_VIEW || this.mode === solutionModes.REVIEW || this.mode === solutionModes.CREATOR_VIEW) && (this.mode !== solutionModes.VIEWONLY)) {
+    this.getCommentConfigs()
+  }
   if(this.programId && Object.keys(this.programWithRolloutService.programData)?.length > 1){
     this.resourceCount  =this.programWithRolloutService.programData.resources ?  this.programWithRolloutService.programData.resources?.length : 0;
     this.resources = (this.programWithRolloutService.programData.published_on && (this.mode === solutionModes.RESOURCE_EDIT || this.mode === solutionModes.REVIEW  || this.mode === solutionModes.REQUEST_FOR_EDIT)) ? this.programWithRolloutService.programData.resources.slice().reverse():  this.programWithRolloutService.programData.resources
     this.addActionButtons()
-    if ((this.programWithRolloutService?.programData?.stage == resourceStatus.REVIEW  || this.mode === solutionModes.REQUEST_FOR_EDIT || this.mode === solutionModes.REVIEWER_VIEW || this.mode === solutionModes.REVIEW || this.mode === solutionModes.CREATOR_VIEW) && (this.mode !== solutionModes.VIEWONLY)) {
-      this.getCommentConfigs()
-    }
     if(this.checkValidationOnInit) {
       this.programWithRolloutService.triggerProgramSendForReview();
     }

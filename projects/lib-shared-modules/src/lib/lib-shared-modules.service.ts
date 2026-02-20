@@ -142,7 +142,7 @@ export class LibSharedModulesService {
   navigateToLogin(): void {
     localStorage.clear();
     this.indexDb.initDB();
-    this.router.navigate(['login']);
+    window.open(window.location.origin,"_self")
   }
 
   openErrorToast(message:any) {
