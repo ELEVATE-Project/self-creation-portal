@@ -192,7 +192,9 @@ readProgram(){
         // this.programWithRolloutService.tabValidationForProgram = res.result.metaData
         this.programWithRolloutService.formMeta.formValidation = res.result.metaData
         this.programWithRolloutService.setProgramData(res.result)
-        this.programWithRolloutService.updateResourceTargetCriteria(this.programId)
+        if(this.mode != solutionModes.REVIEW ) {
+          this.programWithRolloutService.updateResourceTargetCriteria(this.programId)
+        }
         this.resourceCount  = this.programWithRolloutService.programData.resources ? this.programWithRolloutService.programData.resources.length : 0;
         this.resources = (this.programWithRolloutService.programData.published_on && (this.mode === solutionModes.RESOURCE_EDIT || this.mode === solutionModes.REVIEW  || this.mode === solutionModes.REQUEST_FOR_EDIT)) ? this.programWithRolloutService.programData.resources.slice().reverse():  this.programWithRolloutService.programData.resources
         this.programWithRolloutService.tabValidationForProgram.programResources = res.result.resources?.length > 0 ? 'VALID' : 'INVALID'

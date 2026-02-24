@@ -225,6 +225,7 @@ export class ResourceHolderComponent implements OnInit{
         break;
     }
     this.resourceService.getResourceList(this.pagination, this.filters, this.sortOptions, this.pageStatus,listType, url).subscribe(response => {
+      this.isLoading = false;
       this.handleResponse(response);
     });
   }

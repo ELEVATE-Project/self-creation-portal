@@ -463,7 +463,7 @@ export class ProjectDetailsComponent implements OnDestroy, OnInit, AfterViewChec
         );
         this.libProjectService.updateProgramData(this.libProjectService.programData).subscribe((res:any)=>{})
       }
-      if(this.mode === solutionModes.EDIT || this.mode === solutionModes.REQUEST_FOR_EDIT){
+      if((this.mode === solutionModes.EDIT || this.mode === solutionModes.REQUEST_FOR_EDIT) && this.mode != solutionModes.META_REVIEW){
         if(this.libProjectService.projectData.id) {
           this.libProjectService.createOrUpdateProject(this.libProjectService.projectData,this.projectId).subscribe((res)=> console.log(res))
         }
@@ -472,7 +472,9 @@ export class ProjectDetailsComponent implements OnDestroy, OnInit, AfterViewChec
     // if(this.mode.length==0 && this.route.snapshot.queryParamMap.get('parent') == 'create') {
     //   this.createProject()
     // }
-    this.libProjectService.saveProjectFunc(false);
+    if(this.mode != solutionModes.META_REVIEW){
+      this.libProjectService.saveProjectFunc(false);
+    }
     this.subscription.unsubscribe();
   }
   formMarkTouched() {
