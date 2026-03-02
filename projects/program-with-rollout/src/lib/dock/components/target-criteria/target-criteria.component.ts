@@ -661,6 +661,7 @@ export class TargetCriteriaComponent implements OnInit {
   }
 
   pageEvent(event: any) {
+    this.pageCount = event.pageSize;
     this.formService
       .getEntitiesListAsType(
         this.subEntityURL,
