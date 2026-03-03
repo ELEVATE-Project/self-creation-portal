@@ -41,7 +41,7 @@ export class CreateNewComponent {
         // this.resourceList = this.formService.checkPermissions(this.resourceList,res.result)
         let userRoles:any = localStorage.getItem('user_roles')
         userRoles = JSON.parse(userRoles)
-        if (this.permissions.find((permission:any) => permission.module == 'reviews' && permission.request_type.includes('POST')) && !this.permissions.find((permission:any) => permission.module == 'projects' && permission.request_type.includes('POST')) && !this.permissions.find((permission:any) => permission.module == 'programs' && permission.request_type.includes('POST'))) {
+        if (this.permissions.find((permission:any) => permission.module == 'reviews' && permission.request_type.includes('POST')) && !(this.permissions.find((permission:any) => permission.module == 'projects' && permission.request_type.includes('PATCH'))) && !(this.permissions.find((permission:any) => permission.module == 'programs' && permission.request_type.includes('POST')))) {
           this.router.navigate(['/home/up-for-review'])
         }
         else if (this.permissions.find((permission:any) => permission.module == 'rollouts' && permission.request_type.includes('POST')) && !this.permissions.find((permission:any) => permission.module == 'projects' && permission.request_type.includes('POST')) && !this.permissions.find((permission:any) => permission.module == 'programs' && permission.request_type.includes('POST'))){
