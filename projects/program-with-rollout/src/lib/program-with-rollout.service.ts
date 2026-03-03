@@ -561,7 +561,7 @@ export class ProgramWithRolloutService {
     if (this.programData) {
       let isUpdated = false;
       this.programData.resources.forEach((resource: any) => {
-        if (!resource.start_date || new Date(resource.start_date) < new Date(this.programData.start_date)) {
+        if (!resource.start_date || new Date(resource.start_date) < new Date(this.programData.start_date) || new Date(resource.start_date) > new Date(this.programData.end_date)) {
           resource.start_date = this.programData.start_date;
           isUpdated = true;
         }
