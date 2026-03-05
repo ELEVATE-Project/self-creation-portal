@@ -7,11 +7,11 @@
 .text-box {
     position: relative;
   }
-  
+
   .text-box textarea {
     width: 100%;
   }
-  
+
   .text-box .text-sm {
     position: absolute;
     bottom: 0.625rem;
@@ -35,4 +35,8 @@
 .error-container {
     display: flex;
     height: 2.000rem;
+}
+
+mat-selection-list {
+  overflow-x: hidden !important;
 }
