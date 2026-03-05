@@ -228,13 +228,18 @@ export class TargetCriteriaComponent implements OnInit {
     }
 
     if(key == 'roles') {
-      this.formService
-      .getProfessionSubRoles(
-      event.value.map((value:any) => value.externalId),
-      )
-      .subscribe((res: any) => {
-        this.criteria[0].form[3].options = res.data;
-      });
+      if(event.value.length == 0) {
+        this.criteria[0].form[3].options = [];
+      }
+      else {
+        this.formService
+        .getProfessionSubRoles(
+        event.value.map((value:any) => value.externalId),
+        )
+        .subscribe((res: any) => {
+          this.criteria[0].form[3].options = res.data;
+        });
+      }
     }
     if (key !== 'roles' && key !== 'sub_roles' && key!== 'gender') {
       this.selection.clear();

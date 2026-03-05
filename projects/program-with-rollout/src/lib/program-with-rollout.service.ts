@@ -563,6 +563,9 @@ export class ProgramWithRolloutService {
       this.programData.resources.forEach((resource: any) => {
         if (!resource.start_date || new Date(resource.start_date) < new Date(this.programData.start_date) || new Date(resource.start_date) > new Date(this.programData.end_date)) {
           resource.start_date = this.programData.start_date;
+          if(new Date(resource.start_date) > new Date(this.programData.end_date)) {
+            resource.end_date = this.programData.end_date;
+          }
           isUpdated = true;
         }
         if ((!resource.end_date || new Date(resource.end_date) > new Date(this.programData.end_date)) || (!resource.end_date || new Date(resource.end_date) < new Date())) {
