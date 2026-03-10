@@ -83,6 +83,10 @@ export class TargetCriteriaComponent implements OnInit {
   subEntityURL:string = '';
   hierarchyList:string = '';
   rolesObject:any = '';
+  sortingOrder:any = {
+    active:'',
+    direction:''
+  }
 
   constructor(
     public dialogRef: MatDialogRef<TargetCriteriaComponent>,
@@ -107,6 +111,7 @@ export class TargetCriteriaComponent implements OnInit {
 
   onSortChange(event:any) {
     console.log(event)
+    this.sortingOrder = event
     this.formService
     .getEntitiesListAsType(
       this.subEntityURL,
@@ -116,7 +121,7 @@ export class TargetCriteriaComponent implements OnInit {
         : Array.isArray(this.formData.state)
         ? this.formData.state[0]._id
         : this.formData.state._id,
-      0,
+      1,
       this.pageCount,
       event.active,
       event.direction
@@ -677,7 +682,9 @@ export class TargetCriteriaComponent implements OnInit {
           ? this.formData.state[0]._id
           : this.formData.state._id,
         event.pageIndex + 1,
-        event.pageSize
+        event.pageSize,
+        this.sortingOrder.active,
+        this.sortingOrder.direction
       )
       .subscribe((res: any) => {
         this.insertDataIntoTable(res.result.data, res.result.count);

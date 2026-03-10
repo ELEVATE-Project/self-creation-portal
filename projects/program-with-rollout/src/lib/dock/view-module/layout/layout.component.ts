@@ -52,13 +52,13 @@ export class LayoutComponent {
           else {
             data.sidenavData.headerData.buttons.viewOnly = [];
           }
-          if(!button) {
-            data?.sidenavData.headerData.buttons.viewOnly.push({
-              "title": "EDIT",
-              "disable": false,
-              "cssClass": "primary-button-enable"
-            })
-          }
+          // if(!button) {
+          //   data?.sidenavData.headerData.buttons.viewOnly.push({
+          //     "title": "EDIT",
+          //     "disable": false,
+          //     "cssClass": "primary-button-enable"
+          //   })
+          // }
           this.headerData = data?.sidenavData.headerData
           this.config = this.programWithRolloutService.programConfig
         })
