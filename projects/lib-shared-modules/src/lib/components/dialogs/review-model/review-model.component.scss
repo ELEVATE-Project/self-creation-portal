@@ -37,6 +37,6 @@
     height: 2.000rem;
 }
 
-mat-selection-list {
+::ng-deep .mat-mdc-dialog-surface {
   overflow-x: hidden !important;
 }
