@@ -63,6 +63,31 @@ This project using multiple angular build libraries like  lib-observation, lib-o
       ```bash
          ng build lib-project   
       ```
+   3. Build the lib-observation using following command
+
+      ```bash
+         ng build lib-observation   
+      ```
+   4. Build the lib-observation-with-rubrics using following command
+
+      ```bash
+         ng build lib-observation-with-rubrics   
+      ```
+   5. Build the lib-program using following command
+
+      ```bash
+         ng build lib-program   
+      ```
+   6. Build the lib-survey using following command
+
+      ```bash
+         ng build lib-survey   
+      ```
+   7. Build the self-creation-portal main app using following command
+
+      ```bash
+         ng build self-creation-portal --configuration=production 
+      ```
 
    The build artifacts will be stored in the `dist/` directory. 
 
@@ -78,3 +103,12 @@ This project using multiple angular build libraries like  lib-observation, lib-o
 
 1. Open the running app in the browser.
 2. Start inspecting using Chrome dev tools or any alternatives.
+
+# Add Self Creation Portal as a micro service
+
+## Setting up the Project
+
+## Building the Libraries
+
+## Instructions to access the page with authorization
+The user needs to set the authentication token in the key in local storage "accToken".
