@@ -8,7 +8,7 @@ RUN npm install --force
 
 # Copy the rest of the application code and build
 COPY . .
-RUN npm run build self-creation-portal --configuration production
+RUN npm run build self-creation-portal --configuration=production
 
 # Stage 2: Serve the app with Nginx
 FROM nginx:stable-alpine
