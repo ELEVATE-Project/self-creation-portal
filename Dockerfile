@@ -8,27 +8,27 @@ RUN npm install --force
 
 # Copy the rest of the application code and build
 COPY . .
-RUN ng build lib-shared-modules
+RUN npx ng build lib-shared-modules
 
 # Copy the rest of the application code and build
 COPY . .
-RUN ng build lib-project
+RUN npx ng build lib-project
 
 # Copy the rest of the application code and build
 COPY . .
-RUN ng build lib-observation
+RUN npx ng build lib-observation
 
 # Copy the rest of the application code and build
 COPY . .
-RUN ng build lib-observation-with-rubrics
+RUN npx ng build lib-observation-with-rubrics
 
 # Copy the rest of the application code and build
 COPY . .
-RUN ng build lib-program
+RUN npx ng build lib-program
 
 # Copy the rest of the application code and build
 COPY . .
-RUN ng build lib-survey
+RUN npx ng build lib-survey
 
 # Copy the rest of the application code and build
 COPY . .
