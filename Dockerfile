@@ -24,7 +24,7 @@ RUN npx ng build lib-observation-with-rubrics
 
 # Copy the rest of the application code and build
 COPY . .
-RUN npx ng build lib-program
+RUN npx ng build program-with-rollout
 
 # Copy the rest of the application code and build
 COPY . .
