@@ -30,8 +30,6 @@ RUN npx ng build program-with-rollout
 COPY . .
 RUN npx ng build lib-survey
 
-COPY environments/environment.ts ./www/assets/env/env.js
-
 # Copy the rest of the application code and build
 COPY . .
 RUN npm run build self-creation-portal --configuration=production
