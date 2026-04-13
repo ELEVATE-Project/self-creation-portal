@@ -38,7 +38,7 @@ RUN npm run build self-creation-portal --configuration=production
 FROM nginx:stable-alpine
 # Copy the build output to replace the default nginx contents.
 # Replace 'your-app-name' with the name found in your angular.json
-COPY --from=build /app/dist/your-app-name/browser /usr/share/nginx/html
+COPY --from=build /app/dist/self-creation-portal/browser /usr/share/nginx/html
 
 # Expose port 80
 EXPOSE 80
