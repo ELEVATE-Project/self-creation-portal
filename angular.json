@@ -149,8 +149,8 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "baseHref": "",
-            "deployUrl": "",
+            "baseHref": "/scp/",
+            "deployUrl": "/scp/",
             "outputPath": "dist/self-creation-portal",
             "index": "projects/self-creation-portal/src/index.html",
             "browser": "projects/self-creation-portal/src/main.ts",
