@@ -128,7 +128,18 @@ export class LibProjectService {
       }
       if(this.projectData.certificate && this.projectData.certificate.criteria.conditions.C4) {
         this.projectData.certificate.criteria.conditions.C4.validationText = '';
-        const value = this.projectData.certificate.criteria.conditions.C4.conditions[Object.keys(this.projectData.certificate.criteria.conditions.C4.conditions)[0]].value
+        let value:any = 1;
+        if(Object.keys(this.projectData.certificate.criteria.conditions.C4.conditions)[0]) {
+          value = this.projectData.certificate.criteria.conditions.C4.conditions[Object.keys(this.projectData.certificate.criteria.conditions.C4.conditions)[0]].value
+        }
+        else {
+          const keys = Object.keys(this.projectData.certificate.criteria.conditions.C3.conditions);
+          keys.map((task:any) => {
+            this.projectData.certificate.criteria.conditions.C4.expression = this.projectData.certificate.criteria.conditions?.C4?.expression?.length == 0 ? task: this.projectData.certificate.criteria.conditions?.C4?.expression + '||' + task
+            this.projectData.certificate.criteria.conditions.C4.conditions[task]= this.projectData.certificate.criteria.conditions.C3.conditions[task];
+            this.projectData.certificate.criteria.expression = this.projectData?.certificate?.criteria?.expression + "&&C4"
+          })
+        }
         this.projectData.certificate.criteria.conditions.C4.validationText = "Add " + value + " evidence" + (parseInt(value) > 1 ? "s":'') + " at any project level"
       }
       if(this.projectData.certificate && this.projectData.certificate.criteria.conditions.C3) {
