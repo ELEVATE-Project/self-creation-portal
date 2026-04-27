@@ -235,7 +235,7 @@ export class ResourceHolderComponent implements OnInit{
    * @param response -resourcelist api response
    */
   handleResponse(response: any) {
-    const result = response.result || { data: [], count: 0, changes_requested_count: 0 };
+    const result = response.result.data ? response.result : { data: [], count: 0, changes_requested_count: 0 };
     this.lists = this.addActionButtons(result.data);
     this.filters.filteredLists = this.lists;
     this.isLoading = false;
