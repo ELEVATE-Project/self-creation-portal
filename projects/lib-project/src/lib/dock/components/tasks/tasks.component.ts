@@ -423,6 +423,7 @@ export class TasksComponent implements OnInit, OnDestroy {
     this.tasks.value.forEach((item:any, index:any) => {
       item.sequence_no = index + 1;
       item.type = item.type ? item.type : "simple"
+      item.link = this.libProjectService.projectData.tasks[index].link ? this.libProjectService.projectData.tasks[index].link : ''
       if(item.allow_evidences == true && item.evidence_details.file_types.length == 0){
        item.evidence_details.file_types = this.tasksData.fileType.options.map((item:any)=> item.value);
       }else if(item.allow_evidences == false){
@@ -485,6 +486,7 @@ export class TasksComponent implements OnInit, OnDestroy {
     this.tasks.value.forEach((item: any, index: any) => {
       item.sequence_no = index + 1;
       item.type = item.type ? item.type : "simple"
+      item.link = this.libProjectService.projectData.tasks[index].link ? this.libProjectService.projectData.tasks[index].link : ''
       if(item.allow_evidences == false){
         item.evidence_details = {}
       }
