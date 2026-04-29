@@ -85,7 +85,8 @@ export class TasksComponent implements OnInit, OnDestroy {
                     children: [element?.children],
                     type:[element?.type],
                     sequence_no:[element?.sequence_no],
-                    solution_details:element?.solution_details ?element.solution_details :{}
+                    solution_details:element?.solution_details ?element.solution_details :{},
+                    link: element.link ? element.link : ''
                   });
                   this.tasks.push(task);
                 })
@@ -119,7 +120,8 @@ export class TasksComponent implements OnInit, OnDestroy {
                       children: [element.children],
                       type:[element.type],
                       sequence_no: [element.sequence_no],
-                      solution_details:element.solution_details ?element.solution_details :{}
+                      solution_details:element.solution_details ?element.solution_details :{},
+                      link: element.link ? element.link : ''
                     });
                     this.tasks.push(task);
                   })
@@ -152,7 +154,8 @@ export class TasksComponent implements OnInit, OnDestroy {
                     children: [element?.children],
                     type:[element?.type],
                     sequence_no:[element?.sequence_no],
-                    solution_details:element?.solution_details ?element.solution_details :{}
+                    solution_details:element?.solution_details ?element.solution_details :{},
+                    link: element.link ? element.link : ''
                   });
                   this.tasks.push(task);
                 })
@@ -190,7 +193,8 @@ export class TasksComponent implements OnInit, OnDestroy {
                       children: [element.children],
                       type:[element.type],
                       sequence_no: [element.sequence_no],
-                      solution_details:element.solution_details ?element.solution_details :{}
+                      solution_details:element.solution_details ?element.solution_details :{},
+                      link: element.link ? element.link : ''
                     });
                     this.tasks.push(task);
                   })
