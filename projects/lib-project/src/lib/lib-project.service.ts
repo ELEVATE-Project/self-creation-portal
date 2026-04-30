@@ -142,7 +142,7 @@ export class LibProjectService {
             })
           }
         }
-        this.projectData.certificate.criteria.conditions.C4.validationText = "Add " + value + " evidence" + (parseInt(value) > 1 ? "s":'') + " at any project level"
+        this.projectData.certificate.criteria.conditions.C4.validationText = "Add " + value + " evidence" + (parseInt(value) > 1 ? "s":'') + " at any task level"
       }
       if(this.projectData.certificate && this.projectData.certificate.criteria.conditions.C3) {
         this.projectData.certificate.criteria.conditions.C3.validationText = ''; // to remove validation texts if old task were added.
