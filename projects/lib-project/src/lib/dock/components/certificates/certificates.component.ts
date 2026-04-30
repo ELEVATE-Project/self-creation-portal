@@ -451,7 +451,7 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
   addTasktoCertificatePage(projectData:any) {
     this.tasks = projectData.tasks.filter((task:any) => {
       if(task?.evidence_details?.min_no_of_evidences) {
-        if(this.libProjectService.projectData.certificate && this.libProjectService.projectData.certificate.criteria && this.libProjectService.projectData.certificate.criteria.conditions.C3.conditions[task.id]) {
+        if(this.libProjectService.projectData.certificate && this.libProjectService.projectData.certificate.criteria && this.libProjectService.projectData.certificate.criteria.conditions.C3 && this.libProjectService.projectData.certificate.criteria.conditions.C3.conditions[task.id]) {
           task.values = this.libProjectService.projectData.certificate.criteria.conditions.C3.conditions[task.id].value
         }
         if(task.name.length > 150){
@@ -833,7 +833,7 @@ export class CertificatesComponent implements OnInit, OnDestroy,AfterViewInit{
   }
 
   setEvidencePatchValue() {
-    if(this.libProjectService.projectData.certificate.criteria?.conditions?.C4?.conditions[0]) {
+    if(this.libProjectService.projectData.certificate.criteria?.conditions?.C4 && Object.keys(this.libProjectService.projectData.certificate.criteria?.conditions?.C4?.conditions).length > 0) {
       this.certificateForm.patchValue({evidenceRequired:this.libProjectService.projectData.certificate.criteria?.conditions?.C2?.conditions?.C1?.value,evidenceRequiredCombined:this.libProjectService.projectData.certificate.criteria?.conditions?.C4?.conditions[Object.keys(this.libProjectService.projectData.certificate.criteria?.conditions?.C4?.conditions)[0]].value})
     }
     else {
